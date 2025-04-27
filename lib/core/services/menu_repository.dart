@@ -14,7 +14,7 @@ class MenuRepository {
   Future<List<Plato>> obtenerPlatos() async {
     final data = await _client
         .from('platos')
-        .select()
+        .select('id,nombre,descripcion,precio,foto_url,categoria_id')
         .order('nombre', ascending: true);
 
     return (data as List)

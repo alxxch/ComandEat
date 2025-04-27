@@ -27,6 +27,8 @@ mixin _$Plato {
   double get precio => throw _privateConstructorUsedError;
   @JsonKey(name: 'foto_url')
   String? get fotoUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'categoria_id')
+  int get categoriaId => throw _privateConstructorUsedError;
 
   /// Serializes this Plato to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -48,6 +50,7 @@ abstract class $PlatoCopyWith<$Res> {
     String? descripcion,
     double precio,
     @JsonKey(name: 'foto_url') String? fotoUrl,
+    @JsonKey(name: 'categoria_id') int categoriaId,
   });
 }
 
@@ -71,6 +74,7 @@ class _$PlatoCopyWithImpl<$Res, $Val extends Plato>
     Object? descripcion = freezed,
     Object? precio = null,
     Object? fotoUrl = freezed,
+    Object? categoriaId = null,
   }) {
     return _then(
       _value.copyWith(
@@ -99,6 +103,11 @@ class _$PlatoCopyWithImpl<$Res, $Val extends Plato>
                     ? _value.fotoUrl
                     : fotoUrl // ignore: cast_nullable_to_non_nullable
                         as String?,
+            categoriaId:
+                null == categoriaId
+                    ? _value.categoriaId
+                    : categoriaId // ignore: cast_nullable_to_non_nullable
+                        as int,
           )
           as $Val,
     );
@@ -119,6 +128,7 @@ abstract class _$$PlatoImplCopyWith<$Res> implements $PlatoCopyWith<$Res> {
     String? descripcion,
     double precio,
     @JsonKey(name: 'foto_url') String? fotoUrl,
+    @JsonKey(name: 'categoria_id') int categoriaId,
   });
 }
 
@@ -141,6 +151,7 @@ class __$$PlatoImplCopyWithImpl<$Res>
     Object? descripcion = freezed,
     Object? precio = null,
     Object? fotoUrl = freezed,
+    Object? categoriaId = null,
   }) {
     return _then(
       _$PlatoImpl(
@@ -169,6 +180,11 @@ class __$$PlatoImplCopyWithImpl<$Res>
                 ? _value.fotoUrl
                 : fotoUrl // ignore: cast_nullable_to_non_nullable
                     as String?,
+        categoriaId:
+            null == categoriaId
+                ? _value.categoriaId
+                : categoriaId // ignore: cast_nullable_to_non_nullable
+                    as int,
       ),
     );
   }
@@ -183,6 +199,7 @@ class _$PlatoImpl implements _Plato {
     this.descripcion,
     required this.precio,
     @JsonKey(name: 'foto_url') this.fotoUrl,
+    @JsonKey(name: 'categoria_id') required this.categoriaId,
   });
 
   factory _$PlatoImpl.fromJson(Map<String, dynamic> json) =>
@@ -199,10 +216,13 @@ class _$PlatoImpl implements _Plato {
   @override
   @JsonKey(name: 'foto_url')
   final String? fotoUrl;
+  @override
+  @JsonKey(name: 'categoria_id')
+  final int categoriaId;
 
   @override
   String toString() {
-    return 'Plato(id: $id, nombre: $nombre, descripcion: $descripcion, precio: $precio, fotoUrl: $fotoUrl)';
+    return 'Plato(id: $id, nombre: $nombre, descripcion: $descripcion, precio: $precio, fotoUrl: $fotoUrl, categoriaId: $categoriaId)';
   }
 
   @override
@@ -215,13 +235,22 @@ class _$PlatoImpl implements _Plato {
             (identical(other.descripcion, descripcion) ||
                 other.descripcion == descripcion) &&
             (identical(other.precio, precio) || other.precio == precio) &&
-            (identical(other.fotoUrl, fotoUrl) || other.fotoUrl == fotoUrl));
+            (identical(other.fotoUrl, fotoUrl) || other.fotoUrl == fotoUrl) &&
+            (identical(other.categoriaId, categoriaId) ||
+                other.categoriaId == categoriaId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, nombre, descripcion, precio, fotoUrl);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    nombre,
+    descripcion,
+    precio,
+    fotoUrl,
+    categoriaId,
+  );
 
   /// Create a copy of Plato
   /// with the given fields replaced by the non-null parameter values.
@@ -244,6 +273,7 @@ abstract class _Plato implements Plato {
     final String? descripcion,
     required final double precio,
     @JsonKey(name: 'foto_url') final String? fotoUrl,
+    @JsonKey(name: 'categoria_id') required final int categoriaId,
   }) = _$PlatoImpl;
 
   factory _Plato.fromJson(Map<String, dynamic> json) = _$PlatoImpl.fromJson;
@@ -259,6 +289,9 @@ abstract class _Plato implements Plato {
   @override
   @JsonKey(name: 'foto_url')
   String? get fotoUrl;
+  @override
+  @JsonKey(name: 'categoria_id')
+  int get categoriaId;
 
   /// Create a copy of Plato
   /// with the given fields replaced by the non-null parameter values.

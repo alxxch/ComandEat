@@ -12,6 +12,7 @@ _$PlatoImpl _$$PlatoImplFromJson(Map<String, dynamic> json) => _$PlatoImpl(
   descripcion: json['descripcion'] as String?,
   precio: (json['precio'] as num).toDouble(),
   fotoUrl: json['foto_url'] as String?,
+  categoriaId: (json['categoria_id'] as num).toInt(),
 );
 
 Map<String, dynamic> _$$PlatoImplToJson(_$PlatoImpl instance) =>
@@ -21,4 +22,5 @@ Map<String, dynamic> _$$PlatoImplToJson(_$PlatoImpl instance) =>
       'descripcion': instance.descripcion,
       'precio': instance.precio,
       'foto_url': instance.fotoUrl,
+      'categoria_id': instance.categoriaId,
     };

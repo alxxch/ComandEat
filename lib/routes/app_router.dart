@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/menu/views/menu_screen.dart';
 import '../features/carrito/views/carrito_screen.dart';
 import '../features/pedido/views/estado_pedido_screen.dart';
+import '../features/menu/views/home_screen.dart';
 
 part 'route_names.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: Routes.menu,
   routes: [
-    GoRoute(path: Routes.menu, name: RouteNames.menu, builder: (_, __) => const MenuScreen()),
-    GoRoute(path: Routes.carrito, name: RouteNames.carrito, builder: (_, __) => const CarritoScreen()),
+    GoRoute(path: Routes.menu, name: RouteNames.menu, builder: (_,__)=> const HomeScreen()),
+    GoRoute(path: Routes.carrito, name: RouteNames.carrito, builder: (_,__)=> const CarritoScreen()),
     GoRoute(
       path: '${Routes.estadoPedido}/:id',
       name: RouteNames.estadoPedido,
