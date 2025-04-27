@@ -38,6 +38,7 @@ dependencies:
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
   cupertino_icons: ^1.0.8
+  lottie: ^2.6.0
 
 
 dev_dependencies:
@@ -60,6 +61,10 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/animations/pending.json
+    - assets/animations/cooking.json
+    - assets/animations/ready.json
+    - assets/animations/done.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

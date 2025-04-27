@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../controllers/carrito_controller.dart';
 import '../../../core/services/providers.dart';
+import '../../../core/models/plato.dart';
 
 class CarritoScreen extends ConsumerWidget {
   const CarritoScreen({super.key});
@@ -12,6 +13,7 @@ class CarritoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final carrito = ref.watch(carritoControllerProvider);
     final carritoCtrl = ref.read(carritoControllerProvider.notifier);
+    final pedidoRepo = ref.read(pedidoRepoProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Carrito')),
@@ -24,8 +26,8 @@ class CarritoScreen extends ConsumerWidget {
                     child: ListView.builder(
                       itemCount: carrito.length,
                       itemBuilder: (context, index) {
-                        final plato = carrito.keys.elementAt(index);
-                        final cantidad = carrito[plato]!;
+                        final Plato plato = carrito.keys.elementAt(index);
+                        final int qty = carrito[plato]!;
 
                         return Dismissible(
                           key: ValueKey(plato.id),
@@ -34,81 +36,76 @@ class CarritoScreen extends ConsumerWidget {
                             color: Colors.red,
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: const Icon(Icons.delete, color: Colors.white),
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
                           ),
-                          onDismissed: (_) => carritoCtrl.quitarPorCompleto(plato),
+                          onDismissed:
+                              (_) => carritoCtrl.quitarPorCompleto(plato),
                           child: ListTile(
-                            leading: plato.fotoUrl != null ? Image.network(plato.fotoUrl!, width: 50, fit: BoxFit.cover) : const Icon(Icons.fastfood),
+                            leading:
+                                plato.fotoUrl != null
+                                    ? Image.network(
+                                      plato.fotoUrl!,
+                                      width: 50,
+                                      fit: BoxFit.cover,
+                                    )
+                                    : const Icon(Icons.fastfood),
                             title: Text(plato.nombre),
-                            subtitle: Text('${plato.precio.toStringAsFixed(2)} €  ×  $cantidad'),
+                            trailing: Text('x$qty'),
+                            onTap: () => carritoCtrl.quitarUno(plato),
                           ),
                         );
                       },
                     ),
                   ),
-                  _TotalSection(total: carritoCtrl.total()),
-                  _EnviarButton(carrito: carrito),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          '${carritoCtrl.total().toStringAsFixed(2)} €',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.send),
+                      label: const Text('Enviar pedido'),
+                      onPressed: () async {
+                        try {
+                          final idPedido = await pedidoRepo.enviarPedido(
+                            carrito,
+                          );
+                          carritoCtrl.limpiar();
+                          if (context.mounted) {
+                            context.push('/estado-pedido/$idPedido');
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ),
                 ],
               ),
-    );
-  }
-}
-
-/// Widget que enseña el total formateado
-class _TotalSection extends StatelessWidget {
-  const _TotalSection({required this.total});
-
-  final double total;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('Total', style: Theme.of(context).textTheme.titleMedium),
-          Text('${total.toStringAsFixed(2)} €', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-}
-
-/// Botón que envía el pedido a Supabase
-class _EnviarButton extends ConsumerWidget {
-  const _EnviarButton({required this.carrito});
-
-  final Map carrito;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final carritoCtrl = ref.read(carritoControllerProvider.notifier);
-    final pedidoRepo = ref.read(pedidoRepoProvider);
-
-    return SizedBox(
-      width: double.infinity,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.send),
-          label: const Text('Enviar pedido'),
-          onPressed:
-              carrito.isEmpty
-                  ? null
-                  : () async {
-                    final id = await pedidoRepo.enviarPedido(
-                      carrito.cast(), // Map<Plato,int>
-                      1, // TODO: mesa real
-                    );
-
-                    carritoCtrl.limpiar();
-                    if (context.mounted) {
-                      context.push('/estado-pedido/$id');
-                    }
-                  },
-        ),
-      ),
     );
   }
 }
