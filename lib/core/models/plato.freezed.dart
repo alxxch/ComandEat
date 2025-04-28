@@ -29,6 +29,7 @@ mixin _$Plato {
   String? get fotoUrl => throw _privateConstructorUsedError;
   @JsonKey(name: 'categoria_id')
   int get categoriaId => throw _privateConstructorUsedError;
+  List<String> get allergenTags => throw _privateConstructorUsedError;
 
   /// Serializes this Plato to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,6 +52,7 @@ abstract class $PlatoCopyWith<$Res> {
     double precio,
     @JsonKey(name: 'foto_url') String? fotoUrl,
     @JsonKey(name: 'categoria_id') int categoriaId,
+    List<String> allergenTags,
   });
 }
 
@@ -75,6 +77,7 @@ class _$PlatoCopyWithImpl<$Res, $Val extends Plato>
     Object? precio = null,
     Object? fotoUrl = freezed,
     Object? categoriaId = null,
+    Object? allergenTags = null,
   }) {
     return _then(
       _value.copyWith(
@@ -108,6 +111,11 @@ class _$PlatoCopyWithImpl<$Res, $Val extends Plato>
                     ? _value.categoriaId
                     : categoriaId // ignore: cast_nullable_to_non_nullable
                         as int,
+            allergenTags:
+                null == allergenTags
+                    ? _value.allergenTags
+                    : allergenTags // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
           )
           as $Val,
     );
@@ -129,6 +137,7 @@ abstract class _$$PlatoImplCopyWith<$Res> implements $PlatoCopyWith<$Res> {
     double precio,
     @JsonKey(name: 'foto_url') String? fotoUrl,
     @JsonKey(name: 'categoria_id') int categoriaId,
+    List<String> allergenTags,
   });
 }
 
@@ -152,6 +161,7 @@ class __$$PlatoImplCopyWithImpl<$Res>
     Object? precio = null,
     Object? fotoUrl = freezed,
     Object? categoriaId = null,
+    Object? allergenTags = null,
   }) {
     return _then(
       _$PlatoImpl(
@@ -185,6 +195,11 @@ class __$$PlatoImplCopyWithImpl<$Res>
                 ? _value.categoriaId
                 : categoriaId // ignore: cast_nullable_to_non_nullable
                     as int,
+        allergenTags:
+            null == allergenTags
+                ? _value._allergenTags
+                : allergenTags // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
       ),
     );
   }
@@ -200,7 +215,8 @@ class _$PlatoImpl implements _Plato {
     required this.precio,
     @JsonKey(name: 'foto_url') this.fotoUrl,
     @JsonKey(name: 'categoria_id') required this.categoriaId,
-  });
+    final List<String> allergenTags = const <String>[],
+  }) : _allergenTags = allergenTags;
 
   factory _$PlatoImpl.fromJson(Map<String, dynamic> json) =>
       _$$PlatoImplFromJson(json);
@@ -219,10 +235,18 @@ class _$PlatoImpl implements _Plato {
   @override
   @JsonKey(name: 'categoria_id')
   final int categoriaId;
+  final List<String> _allergenTags;
+  @override
+  @JsonKey()
+  List<String> get allergenTags {
+    if (_allergenTags is EqualUnmodifiableListView) return _allergenTags;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_allergenTags);
+  }
 
   @override
   String toString() {
-    return 'Plato(id: $id, nombre: $nombre, descripcion: $descripcion, precio: $precio, fotoUrl: $fotoUrl, categoriaId: $categoriaId)';
+    return 'Plato(id: $id, nombre: $nombre, descripcion: $descripcion, precio: $precio, fotoUrl: $fotoUrl, categoriaId: $categoriaId, allergenTags: $allergenTags)';
   }
 
   @override
@@ -237,7 +261,11 @@ class _$PlatoImpl implements _Plato {
             (identical(other.precio, precio) || other.precio == precio) &&
             (identical(other.fotoUrl, fotoUrl) || other.fotoUrl == fotoUrl) &&
             (identical(other.categoriaId, categoriaId) ||
-                other.categoriaId == categoriaId));
+                other.categoriaId == categoriaId) &&
+            const DeepCollectionEquality().equals(
+              other._allergenTags,
+              _allergenTags,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -250,6 +278,7 @@ class _$PlatoImpl implements _Plato {
     precio,
     fotoUrl,
     categoriaId,
+    const DeepCollectionEquality().hash(_allergenTags),
   );
 
   /// Create a copy of Plato
@@ -274,6 +303,7 @@ abstract class _Plato implements Plato {
     required final double precio,
     @JsonKey(name: 'foto_url') final String? fotoUrl,
     @JsonKey(name: 'categoria_id') required final int categoriaId,
+    final List<String> allergenTags,
   }) = _$PlatoImpl;
 
   factory _Plato.fromJson(Map<String, dynamic> json) = _$PlatoImpl.fromJson;
@@ -292,6 +322,8 @@ abstract class _Plato implements Plato {
   @override
   @JsonKey(name: 'categoria_id')
   int get categoriaId;
+  @override
+  List<String> get allergenTags;
 
   /// Create a copy of Plato
   /// with the given fields replaced by the non-null parameter values.

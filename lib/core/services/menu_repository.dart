@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/plato.dart';
@@ -7,32 +8,35 @@ final menuRepoProvider = Provider<MenuRepository>((ref) {
 });
 
 class MenuRepository {
-  MenuRepository() : _client = Supabase.instance.client;
-
-  final SupabaseClient _client;
+  final SupabaseClient _client = Supabase.instance.client;
 
   Future<List<Plato>> obtenerPlatos() async {
-    final data = await _client
+    final platosRaw = await _client
         .from('platos')
         .select('id,nombre,descripcion,precio,foto_url,categoria_id')
-        .order('nombre', ascending: true);
+        .order('nombre') as List;
 
-    return (data as List)
+    final platos = platosRaw
         .map((e) => Plato.fromJson(e as Map<String, dynamic>))
         .toList();
-  }
 
-  Future<List<Plato>> obtenerPlatosPorIngrediente(int ingredienteId) async {
-    final data = await _client.rpc('platos_por_ingrediente', params: {
-      'p_ingrediente_id': ingredienteId,
-    });
+    final piRaw = await _client
+        .from('plato_ingrediente')
+        .select('plato_id, ingrediente:ingredientes(id,nombre,es_alergeno)')
+    as List;
 
-    return (data as List)
-        .map((e) => Plato.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
+    final Map<int, List<String>> tagsMap = {};
+    for (final row in piRaw.cast<Map<String, dynamic>>()) {
+      final int pid = row['plato_id'] as int;
+      final ing  = row['ingrediente'] as Map<String, dynamic>;
+      if (ing['es_alergeno'] as bool) {
+        tagsMap.putIfAbsent(pid, () => []).add(ing['nombre'] as String);
+      }
+    }
 
-  Future<void> crearPlato(Plato p) async {
-    await _client.from('platos').insert(p.toJson()..remove('id'));
+    return platos.map((p) {
+      final tags = tagsMap[p.id] ?? <String>[];
+      return p.copyWith(allergenTags: tags);
+    }).toList();
   }
 }

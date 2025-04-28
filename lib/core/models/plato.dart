@@ -12,7 +12,8 @@ class Plato with _$Plato {
     String? descripcion,
     required double precio,
     @JsonKey(name: 'foto_url') String? fotoUrl,
-    @JsonKey(name: 'categoria_id') required int categoriaId, // ←
+    @JsonKey(name: 'categoria_id') required int categoriaId,
+    @Default(<String>[]) List<String> allergenTags,
   }) = _Plato;
 
   factory Plato.fromJson(Map<String, dynamic> json) => _$PlatoFromJson(json);
