@@ -26,6 +26,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProviderStateMixin {
   int _selectedTab = 0;
   String _searchQuery = '';
+  bool _isExpanded = false;
+  late FocusNode _focusNode;
 
   // Lista estática de categorías
   final List<Categoria> categorias = const [Categoria(1, 'Entrantes'), Categoria(2, 'Pizzas'), Categoria(3, 'Postres'), Categoria(4, 'Bebidas')];
@@ -41,10 +43,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
 
     _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _curve = CurvedAnimation(parent: _animCtrl, curve: Curves.easeInOut);
+
+    _focusNode = FocusNode(); // Inicializamos el FocusNode
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        setState(() {
+          _isExpanded = false; // Al perder foco, colapsamos
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _animCtrl.dispose();
     super.dispose();
   }
@@ -128,8 +140,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                           child: ChoiceChip(
                             label: Text(cat.nombre, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
                             selected: isSelected,
-                            selectedColor: Theme.of(context).colorScheme.primary,
+                            selectedColor: Colors.grey[400],
                             backgroundColor: Colors.grey[200],
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            showCheckmark: false,
+                            side: BorderSide(color: Colors.transparent),
                             onSelected: (_) {
                               setState(() {
                                 _categoriaSeleccionada = cat;
@@ -141,20 +156,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       },
                     ),
                   ),
-                  const Divider(height: 1),
 
                   // ─── Barra de búsqueda ───
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Buscar plato...',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                        fillColor: Colors.grey.shade200,
-                        filled: true,
+                    padding: const EdgeInsets.all(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: _isExpanded ? MediaQuery.of(context).size.width - 50 : 50,
+                      height: 50,
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            child: Center(
+                              // <-- Centrar el IconButton en su espacio
+                              child: IconButton(
+                                icon: const Icon(Icons.search),
+                                onPressed: () {
+                                  setState(() {
+                                    _isExpanded = !_isExpanded;
+                                    FocusScope.of(context).requestFocus(_focusNode);
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          if (_isExpanded)
+                            Expanded(
+                              child: TextField(
+                                focusNode: _focusNode,
+                                autofocus: true,
+                                decoration: const InputDecoration(hintText: 'Buscar plato...', border: InputBorder.none),
+                                onChanged: (text) {
+                                  setState(() {
+                                    _searchQuery = text;
+                                  });
+                                },
+                              ),
+                            ),
+                        ],
                       ),
-                      onChanged: (text) => setState(() => _searchQuery = text),
                     ),
                   ),
 
@@ -274,7 +319,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
         currentIndex: _selectedTab,
         onTap: (i) => setState(() => _selectedTab = i),
         backgroundColor: Colors.white,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
+        selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey.shade600,
         showUnselectedLabels: true,
         elevation: 4,
