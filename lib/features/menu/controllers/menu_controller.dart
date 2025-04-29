@@ -26,3 +26,5 @@ StateNotifierProvider<MenuController, AsyncValue<List<Plato>>>(
     return MenuController(repo);
   },
 );
+
+final menuRepoProvider = Provider((_) => MenuRepository());
