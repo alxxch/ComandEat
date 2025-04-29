@@ -36,24 +36,14 @@ class CarritoScreen extends ConsumerWidget {
                             color: Colors.red,
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
+                            child: const Icon(Icons.delete, color: Colors.white),
                           ),
-                          onDismissed:
-                              (_) => carritoCtrl.quitarPorCompleto(plato),
+                          onDismissed: (_) => carritoCtrl.quitarPorCompleto(plato),
                           child: ListTile(
-                            leading:
-                                plato.fotoUrl != null
-                                    ? Image.network(
-                                      plato.fotoUrl!,
-                                      width: 50,
-                                      fit: BoxFit.cover,
-                                    )
-                                    : const Icon(Icons.fastfood),
+                            leading: plato.fotoUrl != null ? Image.network(plato.fotoUrl!, width: 50, fit: BoxFit.cover) : const Icon(Icons.fastfood),
                             title: Text(plato.nombre),
-                            trailing: Text('x$qty'),
+                            subtitle: Text('${(plato.precio * qty).toStringAsFixed(2)} €'),
+                            trailing: Text('x$qty', style: Theme.of(context).textTheme.titleMedium),
                             onTap: () => carritoCtrl.quitarUno(plato),
                           ),
                         );
@@ -61,44 +51,39 @@ class CarritoScreen extends ConsumerWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Total',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        Text(
-                          '${carritoCtrl.total().toStringAsFixed(2)} €',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
+                        Text('Total', style: Theme.of(context).textTheme.titleMedium),
+                        Text('${carritoCtrl.total().toStringAsFixed(2)} €', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.send),
+                      icon: const Icon(Icons.send, color: Colors.black),
                       label: const Text('Enviar pedido'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
+                        foregroundColor: Colors.black,
+                        elevation: 4,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: () async {
                         try {
-                          final idPedido = await pedidoRepo.enviarPedido(
-                            carrito,
-                          );
+                          final idPedido = await pedidoRepo.enviarPedido(carrito);
                           carritoCtrl.limpiar();
                           if (context.mounted) {
                             context.push('/estado-pedido/$idPedido');
                           }
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                           }
                         }
                       },
