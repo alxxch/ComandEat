@@ -4,11 +4,13 @@ import 'menu_repository.dart';
 import 'pedido_repository.dart';
 import 'notification_repository.dart';
 
-final mesaIdProvider = Provider<int>((_) => 1);
+final mesaIdProvider = StateProvider<int?>((_) => null);
 
-final pedidoRepoProvider = Provider<PedidoRepository>(
-      (ref) => PedidoRepository(ref.read(mesaIdProvider)),
-);
+final pedidoRepoProvider = Provider<PedidoRepository>((ref) {
+  final mesaId = ref.watch(mesaIdProvider) ?? 0;
+  // O lanza si es null: throw StateError('Mesa no inicializada');
+  return PedidoRepository(mesaId);
+});
 
 final menuRepoProvider = Provider((_) => MenuRepository());
 

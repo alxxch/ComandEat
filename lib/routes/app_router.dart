@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/carrito/views/carrito_screen.dart';
-import '../features/pedido/views/estado_pedido_screen.dart';
+import '../features/menu/views/scan_qr_screen.dart';
 import '../features/menu/views/home_screen.dart';
 
 part 'route_names.dart';
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: Routes.menu,
+  initialLocation: '/scan',
   routes: [
-    GoRoute(path: Routes.menu, name: RouteNames.menu, builder: (_,__)=> const HomeScreen()),
-    GoRoute(path: Routes.carrito, name: RouteNames.carrito, builder: (_,__)=> const CarritoScreen()),
     GoRoute(
-      path: '${Routes.estadoPedido}/:id',
-      name: RouteNames.estadoPedido,
-      builder: (_, state) {
-        final id = state.pathParameters['id']!;
-        return EstadoPedidoScreen(pedidoId: int.parse(id));
-      },
+      path: '/scan',
+      name: 'scan',
+      builder: (context, state) => const ScanQrScreen(),
+    ),
+    GoRoute(
+      path: '/home',
+      name: 'home',
+      builder: (context, state) => const HomeScreen(),
     ),
   ],
   errorBuilder: (_, __) => const _PageNotFound(),

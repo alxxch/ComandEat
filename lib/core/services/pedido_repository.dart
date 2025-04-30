@@ -2,9 +2,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/plato.dart';
 
 class PedidoRepository {
-  PedidoRepository(this._mesaId);
 
-  final int _mesaId;
+  final int mesaId;
+
+  PedidoRepository(this.mesaId);
+
   final SupabaseClient _client = Supabase.instance.client;
 
   Future<int> enviarPedido(Map<Plato, int> carrito) async {
@@ -13,7 +15,7 @@ class PedidoRepository {
     final cabecera =
         await _client
             .from('pedidos')
-            .insert({'mesa_id': _mesaId, 'estado': 'PENDIENTE'})
+            .insert({'mesa_id': mesaId, 'estado': 'PENDIENTE'})
             .select('id')
             .single();
 

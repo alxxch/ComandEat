@@ -103,6 +103,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
 
   Future<void> _onCallWaiter() async {
     final mesaId = ref.read(mesaIdProvider);
+    if (mesaId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Primero debes escanear el QR de la mesa')),
+      );
+      return;
+    }
     try {
       await ref.read(notificationRepoProvider).llamarCamarero(mesaId);
       if (mounted) {
