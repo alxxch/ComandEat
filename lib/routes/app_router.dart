@@ -12,12 +12,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/scan',
       name: 'scan',
-      builder: (context, state) => const ScanQrScreen(),
+      builder: (_, __) => const ScanQrScreen(),
     ),
     GoRoute(
       path: '/home',
       name: 'home',
-      builder: (context, state) => const HomeScreen(),
+      builder: (_, __) => const HomeScreen(),
     ),
   ],
   errorBuilder: (_, __) => const _PageNotFound(),
