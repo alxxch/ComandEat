@@ -11,6 +11,7 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
   await dotenv.load(fileName: '.env');
+  debugPrint('Supabase URL → ${dotenv.env['SUPABASE_URL']}'); //Debug para comprobar la url de supabase escrita en .env
 
   await Supabase.initialize(
     url:   dotenv.env['SUPABASE_URL']!,

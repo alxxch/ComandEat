@@ -114,9 +114,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Camarero llamado!')));
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Error al llamar: $e\n$st');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al llamar: \$e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -216,10 +217,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       switchInCurve: Curves.easeIn,
                       switchOutCurve: Curves.easeOut,
                       child: KeyedSubtree(
-                        key: ValueKey('\${_categoriaSeleccionada.id}|\$_searchQuery'),
+                        key: ValueKey('${_categoriaSeleccionada.id}|$_searchQuery'),
                         child: platosAsync.when(
                           loading: () => const Center(child: CircularProgressIndicator()),
-                          error: (e, _) => Center(child: Text('Error: \$e')),
+                          error: (e, _) => Center(child: Text('Error: ${e.toString()}')),
                           data: (platos) {
                             final list =
                                 platos.where((p) {
