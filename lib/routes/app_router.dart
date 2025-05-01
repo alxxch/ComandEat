@@ -3,12 +3,18 @@ import 'package:go_router/go_router.dart';
 
 import '../features/menu/views/scan_qr_screen.dart';
 import '../features/menu/views/home_screen.dart';
+import '../features/splash/views/splash_screen.dart';
 
 part 'route_names.dart';
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/scan',
+  initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/splash',
+      name: 'splash',
+      builder: (_, __) => const SplashScreen(),
+    ),
     GoRoute(
       path: '/scan',
       name: 'scan',

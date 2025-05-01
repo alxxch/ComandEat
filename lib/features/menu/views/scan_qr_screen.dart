@@ -63,21 +63,22 @@ class _ScanQrScreenState extends ConsumerState<ScanQrScreen> {
           MobileScanner(
             controller: _controller,
             allowDuplicates: false,
-            onDetect: _onDetect,    // ahora encaja correctamente
+            onDetect: _onDetect,
           ),
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: ElevatedButton.icon(
+              child: FloatingActionButton(
                 onPressed: () => _controller.toggleTorch(),
-                icon: ValueListenableBuilder<TorchState>(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                backgroundColor: Colors.white,
+                child: ValueListenableBuilder<TorchState>(
                   valueListenable: _controller.torchState,
                   builder: (_, state, __) => Icon(
                       state == TorchState.off ? Icons.flash_off : Icons.flash_on
                   ),
                 ),
-                label: const Text('Linterna'),
               ),
             ),
           ),
