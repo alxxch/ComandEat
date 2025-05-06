@@ -28,7 +28,7 @@ class ComandEatClienteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'ComandEat – Cliente',
-      routerConfig: appRouter,
+      routerConfig: clientRoutes,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
