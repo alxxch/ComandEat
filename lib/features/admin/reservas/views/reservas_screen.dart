@@ -16,7 +16,7 @@ class _ReservasScreenState extends State<ReservasScreen> {
         (i) => {
       'id': i + 1,
       'mesa': (i % 15) + 1,
-      'sala': 'Sala \${(i % 3) + 1}',
+      'sala': 'Sala ${(i % 3) + 1}',
       'fecha': DateTime.now().add(Duration(days: i % 5)),
       'hora': '19:00',
       'estado': i % 2 == 0 ? 'Confirmada' : 'Pendiente',

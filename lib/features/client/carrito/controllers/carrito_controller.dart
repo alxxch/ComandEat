@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/models/plato.dart';
+import 'package:comandeat/core/models/plato.dart';
 
 typedef CarritoState = Map<Plato, int>;
 

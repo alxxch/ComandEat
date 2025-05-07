@@ -41,8 +41,6 @@ class AdminLayout extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Icon(Icons.fastfood, size: 28, color: Colors.black87),
-                      SizedBox(width: 8),
                       Text('ComandEat',
                           style: TextStyle(
                             fontSize: 20,
@@ -98,10 +96,6 @@ class AdminLayout extends StatelessWidget {
                       Row(
                         children: const [
                           Icon(Icons.fastfood, color: Colors.black87),
-                          SizedBox(width: 8),
-                          Text('ComandEat',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
 
@@ -153,8 +147,7 @@ class AdminLayout extends StatelessWidget {
                               children: [
                                 const CircleAvatar(
                                   radius: 16,
-                                  backgroundImage: AssetImage(
-                                      'assets/images/restaurant_avatar.png'),
+                                  backgroundColor: Colors.orangeAccent,
                                 ),
                                 const SizedBox(width: 8),
                                 const Text('Mesón Paco'),

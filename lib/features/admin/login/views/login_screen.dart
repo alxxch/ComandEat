@@ -26,26 +26,31 @@ class _LoginScreenState extends State<LoginScreen> {
     final supa = Supabase.instance.client;
 
     try {
-      // Lanza AuthException si falla
-      final res = await supa.auth.signInWithPassword(email: _emailController.text.trim(), password: _passwordController.text);
+      final res = await supa.auth.signInWithPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
-      // Si la sesión es nula, significa credenciales incorrectas
       if (res.session == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credenciales incorrectas')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Credenciales incorrectas')),
+        );
       } else {
-        // Login OK → navega al dashboard
-        context.goNamed('home');
+        context.goNamed('home'); // redirige al dashboard admin
       }
     } on AuthException catch (err) {
-      // Aquí capturas el mensaje de Supabase
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(err.message)),
+      );
     } catch (e) {
-      // Cualquier otro error
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error inesperado: $e')),
+      );
     } finally {
       setState(() => _loading = false);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
