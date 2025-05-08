@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/admin/layouts/admin_layout.dart';
 import '../features/client/menu/views/scan_qr_screen.dart';
 import '../features/client/menu/views/home_screen.dart';
+import '../features/client/pedido/views/estado_pedido_screen.dart';
 import '../features/client/splash/views/splash_screen.dart';
 import '../features/admin/login/views/login_screen.dart';
 import '../features/admin/home/views/home_admin_screen.dart';
@@ -31,6 +32,15 @@ final GoRouter clientRoutes = GoRouter(
       path: '/home',
       name: 'home',
       builder: (_, __) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/estado-pedido/:id',
+      name: RouteNames.estadoPedido,
+      builder: (context, state) {
+        final rawId = state.pathParameters['id']!;
+        final pedidoId = int.parse(rawId);
+        return EstadoPedidoScreen(pedidoId: pedidoId);
+      },
     ),
   ],
   errorBuilder: (_, __) => const _PageNotFound(),

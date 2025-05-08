@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/providers.dart' hide menuControllerProvider;
 import '../../../../core/utils/allergen_icons.dart';
-import '../..//carrito/controllers/carrito_controller.dart';
+import '../../carrito/controllers/carrito_controller.dart';
 import '../../carrito/views/carrito_screen.dart';
 import '../controllers/menu_controller.dart';
 
@@ -250,7 +250,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                   confirmDismiss: (_) async {
                                     await _runAddToCartAnimation(imageKey);
                                     ref.read(carritoControllerProvider.notifier).agregar(p);
-                                    return false;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('"${p.nombre}" añadido al carrito')),
+                                    );
                                   },
 
                                   // Tarjeta centrada con ancho máximo y margen
@@ -295,6 +297,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                           onTap: () async {
                                             await _runAddToCartAnimation(imageKey);
                                             ref.read(carritoControllerProvider.notifier).agregar(p);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('"${p.nombre}" añadido al carrito')),
+                                            );
                                           },
                                         ),
                                       ),

@@ -9,7 +9,8 @@ class CarritoController extends StateNotifier<CarritoState> {
   CarritoController() : super(const {});
 
   void agregar(Plato p, [int unidades = 1]) {
-    state = {...state, p: (state[p] ?? 0) + unidades};
+    final actual = state[p] ?? 0;
+    state = {...state, p: actual + unidades};
   }
 
   void quitarUno(Plato p) {
@@ -22,8 +23,8 @@ class CarritoController extends StateNotifier<CarritoState> {
   }
 
   void quitarPorCompleto(Plato p) {
-    final copy = {...state}..remove(p);
-    state = copy;
+    final nueva = {...state}..remove(p);
+    state = nueva;
   }
 
   void limpiar() => state = const {};
