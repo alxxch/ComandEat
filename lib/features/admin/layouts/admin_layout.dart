@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/services/providers.dart';
+import '../notificaciones/views/notificaciones_screen.dart';
 
 /// Layout principal para la app Admin en pantallas grandes.
 /// Barra Superior + Sidebar izquierdo + área de contenido.
-class AdminLayout extends StatelessWidget {
+class AdminLayout extends ConsumerWidget {
   /// Child es la pantalla actual.
   final Widget child;
   /// Ruta actual, pasada desde el ShellRoute
@@ -16,7 +20,8 @@ class AdminLayout extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notisCount = ref.watch(notificacionesCountProvider);
     // Define items de navegación
     final navItems = [
       _NavItem(label: 'Home', icon: Icons.home, routeName: 'home'),
@@ -104,13 +109,32 @@ class AdminLayout extends StatelessWidget {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.info_outline),
-                            onPressed: null,
+                            tooltip: 'Información',
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (dialogContext) {
+                                  return AlertDialog(
+                                    title: const Text('Información de la App'),
+                                    content: const Text(
+                                      'Desarrollado por Alejandro Posadas Martín, esta aplicación cuenta con licencia para uso educativo.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(dialogContext).pop(),
+                                        child: const Text('Cerrar'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
                           ),
                           Stack(
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.notifications_outlined),
-                                onPressed: () => context.goNamed('pedidos'),
+                                onPressed: () => context.goNamed('notificaciones'),
                               ),
                               Positioned(
                                 right: 8,
@@ -122,14 +146,15 @@ class AdminLayout extends StatelessWidget {
                                     shape: BoxShape.circle,
                                   ),
                                   constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
+                                    minWidth: 14,
+                                    minHeight: 14,
                                   ),
-                                  child: const Text(
-                                    '11',
-                                    style: TextStyle(
+                                  child: Text(
+                                    notisCount.toString().split(" ").last.replaceAll(")", ""),
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),

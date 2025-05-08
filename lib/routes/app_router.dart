@@ -1,3 +1,4 @@
+import 'package:comandeat/features/admin/notificaciones/views/notificaciones_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -89,6 +90,11 @@ final GoRouter adminRoutes = GoRouter(
           path: '/admin/perfil',
           name: 'perfil',
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: '/admin/notificaciones',
+          name: 'notificaciones',
+          builder: (context, state) => const NotificacionesScreen(),
         ),
       ],
     ),

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/plato.dart';
 import 'menu_repository.dart';
 import 'pedido_repository.dart';
@@ -19,3 +20,10 @@ final menuControllerProvider = FutureProvider<List<Plato>>((ref) {
 });
 
 final notificationRepoProvider = Provider((_) => NotificationRepository());
+
+final notificacionesCountProvider = FutureProvider<int>((ref) async {
+  final supa = Supabase.instance.client;
+  final raw = await supa.from('notificaciones').select('id');
+  final list = raw as List<dynamic>;
+  return list.length;
+});

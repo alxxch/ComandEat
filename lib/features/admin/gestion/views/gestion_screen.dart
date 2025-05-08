@@ -125,10 +125,6 @@ class _GestionScreenState extends State<GestionScreen> {
               ),
             ),
           ),
-
-          const SizedBox(height: 24),
-          // Placeholder para otras configuraciones
-          Text('Otras configuraciones disponibles más abajo...', style: TextStyle(color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
         ],
       ),
     );
