@@ -3,37 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/services/providers.dart';
-import '../notificaciones/views/notificaciones_screen.dart';
 
-/// Layout principal para la app Admin en pantallas grandes.
-/// Barra Superior + Sidebar izquierdo + área de contenido.
 class AdminLayout extends ConsumerWidget {
-  /// Child es la pantalla actual.
-  final Widget child;
-  /// Ruta actual, pasada desde el ShellRoute
-  final String currentLocation;
+  final Widget screenActual;
+  final String rutaActual;
 
-  const AdminLayout({
-    Key? key,
-    required this.child,
-    required this.currentLocation,
-  }) : super(key: key);
+  const AdminLayout({Key? key, required this.screenActual, required this.rutaActual})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notisCount = ref.watch(notificacionesCountProvider);
-    // Define items de navegación
     final navItems = [
-      _NavItem(label: 'Home', icon: Icons.home, routeName: 'home'),
-      _NavItem(label: 'Pedidos', icon: Icons.receipt_long, routeName: 'pedidos'),
-      _NavItem(label: 'Reservas', icon: Icons.calendar_today, routeName: 'reservas'),
-      _NavItem(label: 'Gestión', icon: Icons.settings, routeName: 'gestion'),
+      _NavItem(lblNombre: 'Home', icon: Icons.home, ruta: 'home'),
+      _NavItem(lblNombre: 'Pedidos', icon: Icons.receipt_long, ruta: 'pedidos'),
+      _NavItem(lblNombre: 'Reservas', icon: Icons.calendar_today, ruta: 'reservas'),
+      _NavItem(lblNombre: 'Gestión', icon: Icons.settings, ruta: 'gestion'),
     ];
 
     return Scaffold(
       body: Row(
         children: [
-          // Sidebar de navegación (30% ancho aprox.)
           Container(
             width: MediaQuery.of(context).size.width * 0.3,
             color: Colors.grey.shade100,
@@ -46,50 +36,53 @@ class AdminLayout extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Text('ComandEat',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          )),
+                      Text(
+                        'ComandEat',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const Divider(),
-                // Items de navegación
                 Expanded(
                   child: ListView(
-                    children: navItems.map((item) {
-                      final isSelected = currentLocation.startsWith('/admin/${item.routeName}');
-                      return ListTile(
-                        leading: Icon(item.icon,
-                            color: isSelected
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.black54),
-                        title: Text(item.label,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.black87,
-                            )),
-                        selected: isSelected,
-                        onTap: () => context.goNamed(item.routeName),
-                      );
-                    }).toList(),
+                    children:
+                        navItems.map((item) {
+                          final isSelected = rutaActual.startsWith('/admin/${item.ruta}');
+                          return ListTile(
+                            leading: Icon(
+                              item.icon,
+                              color:
+                                  isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.black54,
+                            ),
+                            title: Text(
+                              item.lblNombre,
+                              style: TextStyle(
+                                color:
+                                    isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.black87,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onTap: () => context.goNamed(item.ruta),
+                          );
+                        }).toList(),
                   ),
                 ),
               ],
             ),
           ),
-
-          // División vertical mínima
           const VerticalDivider(width: 1),
-
-          // Área de contenido (70% ancho aprox.)
           Expanded(
             child: Column(
               children: [
-                // Barra Superior
                 Container(
                   height: 60,
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -97,14 +90,7 @@ class AdminLayout extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Izquierda: Logo + nombre
-                      Row(
-                        children: const [
-                          Icon(Icons.fastfood, color: Colors.black87),
-                        ],
-                      ),
-
-                      // Centro (info, notificaciones)
+                      Row(children: const [Icon(Icons.fastfood, color: Colors.black87)]),
                       Row(
                         children: [
                           IconButton(
@@ -117,11 +103,12 @@ class AdminLayout extends ConsumerWidget {
                                   return AlertDialog(
                                     title: const Text('Información de la App'),
                                     content: const Text(
-                                      'Desarrollado por Alejandro Posadas Martín, esta aplicación cuenta con licencia para uso educativo.',
+                                      'Desarrollado por Alejandro Posadas Martín, esta aplicación dispone de licencia para uso educativo.',
                                     ),
                                     actions: [
                                       TextButton(
-                                        onPressed: () => Navigator.of(dialogContext).pop(),
+                                        onPressed:
+                                            () => Navigator.of(dialogContext).pop(),
                                         child: const Text('Cerrar'),
                                       ),
                                     ],
@@ -150,7 +137,11 @@ class AdminLayout extends ConsumerWidget {
                                     minHeight: 14,
                                   ),
                                   child: Text(
-                                    notisCount.toString().split(" ").last.replaceAll(")", ""),
+                                    notisCount
+                                        .toString()
+                                        .split(" ")
+                                        .last
+                                        .replaceAll(")", ""),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
@@ -162,9 +153,7 @@ class AdminLayout extends ConsumerWidget {
                               ),
                             ],
                           ),
-
                           const SizedBox(width: 16),
-                          // Avatar restaurante
                           InkWell(
                             onTap: () => context.goNamed('perfil'),
                             borderRadius: BorderRadius.circular(20),
@@ -184,13 +173,8 @@ class AdminLayout extends ConsumerWidget {
                     ],
                   ),
                 ),
-
-                // Contenido dinámico
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: child,
-                  ),
+                  child: Padding(padding: const EdgeInsets.all(24), child: screenActual),
                 ),
               ],
             ),
@@ -202,12 +186,9 @@ class AdminLayout extends ConsumerWidget {
 }
 
 class _NavItem {
-  final String label;
+  final String lblNombre;
   final IconData icon;
-  final String routeName;
-  const _NavItem({
-    required this.label,
-    required this.icon,
-    required this.routeName,
-  });
+  final String ruta;
+
+  const _NavItem({required this.lblNombre, required this.icon, required this.ruta});
 }

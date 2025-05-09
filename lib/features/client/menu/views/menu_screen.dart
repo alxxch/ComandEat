@@ -98,7 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       return;
     }
     try {
-      await ref.read(notificationRepoProvider).llamarCamarero(mesaId);
+      await ref.read(notificationRepoProvider).callCamarero(mesaId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Camarero llamado!')));
       }
@@ -240,7 +240,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                                 runSpacing: 4,
                                                 children:
                                                     p.allergenTags.map((tag) {
-                                                      final icon = allergenIconMap[tag] ?? Icons.error;
+                                                      final icon = mapIconos[tag] ?? Icons.error;
                                                       return Tooltip(message: tag, child: Icon(icon, size: 16, color: Colors.redAccent));
                                                     }).toList(),
                                               ),

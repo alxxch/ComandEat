@@ -61,8 +61,8 @@ final GoRouter adminRoutes = GoRouter(
     ShellRoute(
       builder: (context, state, child) {
         return AdminLayout(
-          child: child,
-          currentLocation: state.location,
+          screenActual: child,
+          rutaActual: state.location,
         );
       },
       routes: [

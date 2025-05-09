@@ -1,30 +1,45 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Modelo de Mesa y su reserva más reciente
 class Mesa {
   final int id;
   final int numero;
-  final String estado; // 'LIBRE', 'OCUPADA', 'RESERVADA'
+  final String estado;
   final DateTime? ocupadaDesde;
   final String? cliente;
   final DateTime? fechaReserva;
 
-  Mesa({required this.id, required this.numero, required this.estado, this.ocupadaDesde, this.cliente, this.fechaReserva});
+  Mesa({
+    required this.id,
+    required this.numero,
+    required this.estado,
+    this.ocupadaDesde,
+    this.cliente,
+    this.fechaReserva,
+  });
 
   factory Mesa.fromMap(Map<String, dynamic> m) {
-    // reservas es la relación anidada
-    final resList = m['reservas'] as List<dynamic>?;
+    final lstReservas = m['reservas'] as List<dynamic>?;
     String? cliente;
     DateTime? fecha;
-    if (resList != null && resList.isNotEmpty) {
-      final r = resList.first as Map<String, dynamic>;
+    if (lstReservas != null && lstReservas.isNotEmpty) {
+      final r = lstReservas.first as Map<String, dynamic>;
       cliente = r['nombre_cliente'] as String?;
       fecha = DateTime.parse(r['fecha_hora'] as String);
     }
-    final ocupada = m['ocupada_desde'] != null ? DateTime.parse(m['ocupada_desde'] as String) : null;
-    return Mesa(id: m['id'] as int, numero: m['numero'] as int, estado: m['estado'] as String, ocupadaDesde: ocupada, cliente: cliente, fechaReserva: fecha);
+    final ocupada =
+        m['ocupada_desde'] != null ? DateTime.parse(m['ocupada_desde'] as String) : null;
+    return Mesa(
+      id: m['id'] as int,
+      numero: m['numero'] as int,
+      estado: m['estado'] as String,
+      ocupadaDesde: ocupada,
+      cliente: cliente,
+      fechaReserva: fecha,
+    );
   }
 }
 
@@ -36,37 +51,38 @@ class HomeAdminScreen extends StatefulWidget {
 }
 
 class _HomeAdminScreenState extends State<HomeAdminScreen> {
-  late Future<List<Mesa>> _mesasFuture;
-
-  // Selectores dummy
+  late Future<List<Mesa>> _lstMesas;
   DateTime _selectedDate = DateTime.now();
   final List<String> _salas = ['Sala 1', 'Sala 2', 'Sala 3'];
   int _salaIndex = 0;
-  final List<String> _franjas = ['14:00-15:00', '15:00-16:00', '16:00-17:00'];
-  int _franjaIndex = 0;
+  final List<String> _horas = ['14:00-15:00', '15:00-16:00', '16:00-17:00'];
+  int _horasIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _mesasFuture = _fetchMesas();
+    _lstMesas = _getMesas();
   }
 
-  /// Lee mesas y su última reserva si existe
-  Future<List<Mesa>> _fetchMesas() async {
-    final supa = Supabase.instance.client;
+  Future<List<Mesa>> _getMesas() async {
+    final sql = Supabase.instance.client;
     try {
-      final response = await supa.from('mesas').select('id,numero,estado,ocupada_desde,reservas(nombre_cliente,fecha_hora)').order('numero', ascending: true);
-      final list = response as List<dynamic>;
+      final resultado = await sql
+          .from('mesas')
+          .select('id,numero,estado,ocupada_desde,reservas(nombre_cliente,fecha_hora)')
+          .order('numero', ascending: true);
+      final list = resultado as List<dynamic>;
       return list.map((e) => Mesa.fromMap(e as Map<String, dynamic>)).toList();
     } catch (e) {
-      // Si hay cualquier fallo (RLS, red, sintaxis…) cae aquí
       throw Exception('Error cargando mesas: $e');
     }
   }
 
-  void _prevDate() => setState(() => _selectedDate = _selectedDate.subtract(Duration(days: 1)));
+  void _prevDate() =>
+      setState(() => _selectedDate = _selectedDate.subtract(Duration(days: 1)));
 
-  void _nextDate() => setState(() => _selectedDate = _selectedDate.add(Duration(days: 1)));
+  void _nextDate() =>
+      setState(() => _selectedDate = _selectedDate.add(Duration(days: 1)));
 
   void _prevSala() => setState(() {
     if (_salaIndex > 0) _salaIndex--;
@@ -77,61 +93,83 @@ class _HomeAdminScreenState extends State<HomeAdminScreen> {
   });
 
   void _prevFranja() => setState(() {
-    if (_franjaIndex > 0) _franjaIndex--;
+    if (_horasIndex > 0) _horasIndex--;
   });
 
   void _nextFranja() => setState(() {
-    if (_franjaIndex < _franjas.length - 1) _franjaIndex++;
+    if (_horasIndex < _horas.length - 1) _horasIndex++;
   });
 
   Future<void> _ocuparMesa(Mesa mesa) async {
-    final supa = Supabase.instance.client;
-    await supa.from('mesas').update({'estado': 'OCUPADA', 'ocupada_desde': DateTime.now().toIso8601String()}).eq('id', mesa.id).select();
+    final sql = Supabase.instance.client;
+    await sql
+        .from('mesas')
+        .update({'estado': 'OCUPADA', 'ocupada_desde': DateTime.now().toIso8601String()})
+        .eq('id', mesa.id)
+        .select();
     setState(() {
-      _mesasFuture = _fetchMesas();
+      _lstMesas = _getMesas();
     });
   }
 
-  /// Reserva la mesa: crea registro en reservas y marca mesa como reservada
   Future<void> _reservarMesa(Mesa mesa) async {
-    final supa = Supabase.instance.client;
-    await supa.from('reservas').insert({
+    final List<String> lstNombres = [
+      'Raúl',
+      'María',
+      'José',
+      'Ana',
+      'Luis',
+      'Laura',
+      'Pedro',
+    ];
+    final sql = Supabase.instance.client;
+    await sql.from('reservas').insert({
       'mesa_id': mesa.id,
-      'nombre_cliente': 'Raúl', // TODO: pedir nombre real
+      'nombre_cliente': lstNombres[Random().nextInt(7)],
       'fecha_hora': DateTime.now().toIso8601String(),
       'estado': 'ACTIVA',
     });
-    await supa.from('mesas').update({'estado': 'RESERVADA'}).eq('id', mesa.id).select();
+    await sql.from('mesas').update({'estado': 'RESERVADA'}).eq('id', mesa.id).select();
     setState(() {
-      _mesasFuture = _fetchMesas();
+      _lstMesas = _getMesas();
     });
   }
 
-  /// Confirma llegada: mantiene reserva y marca ocupada
   Future<void> _confirmarLlegada(Mesa mesa) async {
-    final supa = Supabase.instance.client;
-    await supa.from('mesas').update({'estado': 'OCUPADA', 'ocupada_desde': DateTime.now().toIso8601String()}).eq('id', mesa.id).select();
-    await supa.from('reservas').delete().eq('mesa_id', mesa.id).select();
+    final sql = Supabase.instance.client;
+    await sql
+        .from('mesas')
+        .update({'estado': 'OCUPADA', 'ocupada_desde': DateTime.now().toIso8601String()})
+        .eq('id', mesa.id)
+        .select();
+    await sql.from('reservas').delete().eq('mesa_id', mesa.id).select();
     setState(() {
-      _mesasFuture = _fetchMesas();
+      _lstMesas = _getMesas();
     });
   }
 
   Future<void> _cancelarReserva(Mesa mesa) async {
-    final supa = Supabase.instance.client;
-    await supa.from('mesas').update({'estado': 'LIBRE', 'ocupada_desde': null}).eq('id', mesa.id).select();
-    await supa.from('reservas').delete().eq('mesa_id', mesa.id).select();
+    final sql = Supabase.instance.client;
+    await sql
+        .from('mesas')
+        .update({'estado': 'LIBRE', 'ocupada_desde': null})
+        .eq('id', mesa.id)
+        .select();
+    await sql.from('reservas').delete().eq('mesa_id', mesa.id).select();
     setState(() {
-      _mesasFuture = _fetchMesas();
+      _lstMesas = _getMesas();
     });
   }
 
-  /// Libera la mesa: actualiza estado a libre
   Future<void> _liberarMesa(int mesaId) async {
-    final supa = Supabase.instance.client;
-    await supa.from('mesas').update({'estado': 'LIBRE', 'ocupada_desde': null}).eq('id', mesaId).select();
+    final sql = Supabase.instance.client;
+    await sql
+        .from('mesas')
+        .update({'estado': 'LIBRE', 'ocupada_desde': null})
+        .eq('id', mesaId)
+        .select();
     setState(() {
-      _mesasFuture = _fetchMesas();
+      _lstMesas = _getMesas();
     });
   }
 
@@ -147,11 +185,21 @@ class _HomeAdminScreenState extends State<HomeAdminScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Estado: ${mesa.estado.toUpperCase()}'),
-              if (mesa.fechaReserva != null) ...[const SizedBox(height: 8), Text('Reservada: ${DateFormat('HH:mm').format(mesa.fechaReserva!.toLocal())}')],
-              if (mesa.estado == 'RESERVADA' && mesa.cliente != null) ...[const SizedBox(height: 8), Text('Cliente: ${mesa.cliente!}')],
+              if (mesa.fechaReserva != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Reservada: ${DateFormat('HH:mm').format(mesa.fechaReserva!.toLocal())}',
+                ),
+              ],
+              if (mesa.estado == 'RESERVADA' && mesa.cliente != null) ...[
+                const SizedBox(height: 8),
+                Text('Cliente: ${mesa.cliente!}'),
+              ],
               if (mesa.estado == 'OCUPADA' && mesa.ocupadaDesde != null) ...[
                 const SizedBox(height: 8),
-                Text('Ocupada desde: ${DateFormat('HH:mm').format(mesa.ocupadaDesde!.toLocal())}'),
+                Text(
+                  'Ocupada desde: ${DateFormat('HH:mm').format(mesa.ocupadaDesde!.toLocal())}',
+                ),
               ],
             ],
           ),
@@ -196,7 +244,10 @@ class _HomeAdminScreenState extends State<HomeAdminScreen> {
                 },
                 child: const Text('Liberar'),
               ),
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cerrar')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cerrar'),
+            ),
           ],
         );
       },
@@ -208,25 +259,34 @@ class _HomeAdminScreenState extends State<HomeAdminScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Selectores de fecha, sala y franja
         Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              _SelectorButton(label: DateFormat('dd/MM/yyyy').format(_selectedDate), onPrev: _prevDate, onNext: _nextDate),
+              _btnSelector(
+                lblTexto: DateFormat('dd/MM/yyyy').format(_selectedDate),
+                anterior: _prevDate,
+                siguiente: _nextDate,
+              ),
               const SizedBox(width: 12),
-              _SelectorButton(label: _salas[_salaIndex], onPrev: _prevSala, onNext: _nextSala),
+              _btnSelector(
+                lblTexto: _salas[_salaIndex],
+                anterior: _prevSala,
+                siguiente: _nextSala,
+              ),
               const SizedBox(width: 12),
-              _SelectorButton(label: _franjas[_franjaIndex], onPrev: _prevFranja, onNext: _nextFranja),
+              _btnSelector(
+                lblTexto: _horas[_horasIndex],
+                anterior: _prevFranja,
+                siguiente: _nextFranja,
+              ),
             ],
           ),
         ),
         const SizedBox(height: 8),
-
-        // Grid de mesas
         Expanded(
           child: FutureBuilder<List<Mesa>>(
-            future: _mesasFuture,
+            future: _lstMesas,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -255,8 +315,19 @@ class _HomeAdminScreenState extends State<HomeAdminScreen> {
                       return GestureDetector(
                         onTap: () => _showMesaDialog(mesa),
                         child: Container(
-                          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-                          child: Center(child: Text('Mesa ${mesa.numero}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                          decoration: BoxDecoration(
+                            color: bg,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Mesa ${mesa.numero}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -264,17 +335,16 @@ class _HomeAdminScreenState extends State<HomeAdminScreen> {
             },
           ),
         ),
-        // Leyenda de colores
         Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: const [
-              _LegendItem(color: Color(0xFFA5D6A7), label: 'Libre'),
+              widgetLegenda(color: Color(0xFFA5D6A7), lblColor: 'Libre'),
               SizedBox(width: 16),
-              _LegendItem(color: Color(0xFFBCAAA4), label: 'Reservada'),
+              widgetLegenda(color: Color(0xFFBCAAA4), lblColor: 'Reservada'),
               SizedBox(width: 16),
-              _LegendItem(color: Color(0xFFEF9A9A), label: 'Ocupada'),
+              widgetLegenda(color: Color(0xFFEF9A9A), lblColor: 'Ocupada'),
             ],
           ),
         ),
@@ -283,36 +353,52 @@ class _HomeAdminScreenState extends State<HomeAdminScreen> {
   }
 }
 
-class _SelectorButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
+class _btnSelector extends StatelessWidget {
+  final String lblTexto;
+  final VoidCallback anterior;
+  final VoidCallback siguiente;
 
-  const _SelectorButton({required this.label, required this.onPrev, required this.onNext});
+  const _btnSelector({
+    required this.lblTexto,
+    required this.anterior,
+    required this.siguiente,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(border: Border.all(), borderRadius: BorderRadius.circular(4)),
+    decoration: BoxDecoration(
+      border: Border.all(),
+      borderRadius: BorderRadius.circular(4),
+    ),
     child: Row(
-      children: [IconButton(icon: const Icon(Icons.chevron_left), onPressed: onPrev), Text(label), IconButton(icon: const Icon(Icons.chevron_right), onPressed: onNext)],
+      children: [
+        IconButton(icon: const Icon(Icons.chevron_left), onPressed: anterior),
+        Text(lblTexto),
+        IconButton(icon: const Icon(Icons.chevron_right), onPressed: siguiente),
+      ],
     ),
   );
 }
 
-class _LegendItem extends StatelessWidget {
+class widgetLegenda extends StatelessWidget {
   final Color color;
-  final String label;
+  final String lblColor;
 
-  const _LegendItem({Key? key, required this.color, required this.label}) : super(key: key);
+  const widgetLegenda({Key? key, required this.color, required this.lblColor})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 16, height: 16, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+        ),
         const SizedBox(width: 4),
-        Text(label),
+        Text(lblColor),
       ],
     );
   }

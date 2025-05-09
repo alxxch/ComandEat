@@ -55,7 +55,7 @@ class _EstadoPedidoScreenState extends ConsumerState<EstadoPedidoScreen> {
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 400),
                     child: Lottie.asset(
-                      estado.animationAsset,
+                      estado.animaciones,
                       key: ValueKey(estado),
                       width: 140,
                       repeat: true,
@@ -64,7 +64,7 @@ class _EstadoPedidoScreenState extends ConsumerState<EstadoPedidoScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  estado.label,
+                  estado.estado,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 32),
@@ -82,7 +82,7 @@ class _EstadoPedidoScreenState extends ConsumerState<EstadoPedidoScreen> {
                                       ? Theme.of(context).colorScheme.primary
                                       : Colors.grey.shade300,
                               child: Icon(
-                                p.icon,
+                                p.icono,
                                 size: 16,
                                 color:
                                     reached

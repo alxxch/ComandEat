@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Modelo de Reserva
 class Reserva {
   final int id;
   final int mesaId;
@@ -29,7 +28,6 @@ class Reserva {
   }
 }
 
-/// Pantalla de Reservas para el administrador
 class ReservasScreen extends StatefulWidget {
   const ReservasScreen({Key? key}) : super(key: key);
 
@@ -38,50 +36,43 @@ class ReservasScreen extends StatefulWidget {
 }
 
 class _ReservasScreenState extends State<ReservasScreen> {
-  late Future<List<Reserva>> _reservasFuture;
+  late Future<List<Reserva>> _lstReservas;
 
   @override
   void initState() {
     super.initState();
-    _reservasFuture = _fetchReservas();
+    _lstReservas = _getReservas();
   }
 
-  /// Obtiene las reservas desde Supabase, ordenadas por fecha desc
-  Future<List<Reserva>> _fetchReservas() async {
-    final supa = Supabase.instance.client;
-    final raw = await supa
+  Future<List<Reserva>> _getReservas() async {
+    final sql = Supabase.instance.client;
+    final reservas = await sql
         .from('reservas')
         .select('id, mesa_id, nombre_cliente, fecha_hora, estado')
         .order('fecha_hora', ascending: false);
-    final data = raw as List<dynamic>;
-    return data.map((e) => Reserva.fromMap(e as Map<String, dynamic>)).toList();
+    final reservasDevolver = reservas as List<dynamic>;
+    return reservasDevolver
+        .map((e) => Reserva.fromMap(e as Map<String, dynamic>))
+        .toList();
   }
 
-  /// Cancela la reserva y libera la mesa
   Future<void> _cancelarReserva(Reserva reserva) async {
-    final supa = Supabase.instance.client;
-    // 1) Actualizar estado de reserva
-    await supa
-        .from('reservas')
-        .delete()
-        .eq('id', reserva.id)
-        .select();
-    // 2) Liberar mesa asociada
-    await supa
+    final sql = Supabase.instance.client;
+    await sql.from('reservas').delete().eq('id', reserva.id).select();
+    await sql
         .from('mesas')
         .update({'estado': 'LIBRE', 'ocupada_desde': null})
         .eq('id', reserva.mesaId)
         .select();
-    // 3) Refrescar lista
     setState(() {
-      _reservasFuture = _fetchReservas();
+      _lstReservas = _getReservas();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Reserva>>(
-      future: _reservasFuture,
+      future: _lstReservas,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -97,42 +88,34 @@ class _ReservasScreenState extends State<ReservasScreen> {
           itemCount: reservas.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
-            final r = reservas[index];
-            final fecha = DateFormat(
-              'dd/MM/yyyy',
-            ).format(r.fechaHora.toLocal());
-            final hora = DateFormat('HH:mm').format(r.fechaHora.toLocal());
-            final isCancelada = r.estado.toLowerCase() == 'CANCELADA';
+            final reserva = reservas[index];
+            final fecha = DateFormat('dd/MM/yyyy').format(reserva.fechaHora.toLocal());
+            final hora = DateFormat('HH:mm').format(reserva.fechaHora.toLocal());
+            final isCancelada = reserva.estado.toLowerCase() == 'CANCELADA';
             return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               elevation: 2,
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.orangeAccent,
                   child: Text(
-                    r.mesaId.toString(),
+                    reserva.mesaId.toString(),
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
-                title: Text('Reserva #${r.id} - Mesa ${r.mesaId}'),
-                subtitle: Text('Cliente: ${r.nombreCliente} • $fecha • $hora'),
+                title: Text('Reserva #${reserva.id} - Mesa ${reserva.mesaId}'),
+                subtitle: Text('Cliente: ${reserva.nombreCliente} • $fecha • $hora'),
                 trailing: TextButton(
                   onPressed:
                       isCancelada
                           ? null
                           : () async {
-                            await _cancelarReserva(r);
+                            await _cancelarReserva(reserva);
                           },
                   style: TextButton.styleFrom(
                     backgroundColor:
-                        isCancelada
-                            ? Colors.grey.shade300
-                            : Colors.red.shade200,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
+                        isCancelada ? Colors.grey.shade300 : Colors.red.shade200,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                   ),
                   child: Text(
                     isCancelada ? 'Cancelada' : 'Cancelar',

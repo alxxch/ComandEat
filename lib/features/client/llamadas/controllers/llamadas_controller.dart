@@ -50,7 +50,7 @@ class LlamadasController extends StateNotifier<List<String>> {
   Future<void> marcarAtendida(int notificacionId) => Supabase.instance.client.from('notificaciones').update({'atendida': true}).eq('id', notificacionId);
 
   void _mostrarSnackbar(String mensaje) {
-    final context = _ref.read(navigatorKeyProvider).currentContext;
+    final context = _ref.read(keyNavProvider).currentContext;
     if (context != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
     }

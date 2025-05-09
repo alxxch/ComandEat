@@ -1,11 +1,10 @@
 import 'package:comandeat/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../controllers/carrito_controller.dart';
-import '../../../../core/services/providers.dart';
 import '../../../../core/models/plato.dart';
+import '../../../../core/services/providers.dart';
+import '../controllers/carrito_controller.dart';
 
 class CarritoScreen extends ConsumerWidget {
   const CarritoScreen({super.key});
@@ -77,7 +76,7 @@ class CarritoScreen extends ConsumerWidget {
                       ),
                       onPressed: () async {
                         try {
-                          final idPedido = await pedidoRepo.enviarPedido(carrito);
+                          final idPedido = await pedidoRepo.sendPedido(carrito);
                           carritoCtrl.limpiar();
                           if (context.mounted) {
                             context.toEstadoPedido(idPedido);

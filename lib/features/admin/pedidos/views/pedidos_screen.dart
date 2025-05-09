@@ -2,31 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Modelo de Pedido
 class Pedido {
   final int id;
   final int mesaId;
   final DateTime fecha;
   final String estado;
 
-  Pedido({required this.id, required this.mesaId, required this.fecha, required this.estado});
+  Pedido({
+    required this.id,
+    required this.mesaId,
+    required this.fecha,
+    required this.estado,
+  });
 
   factory Pedido.fromMap(Map<String, dynamic> map) {
-    return Pedido(id: map['id'] as int, mesaId: map['mesa_id'] as int, fecha: DateTime.parse(map['fecha_hora'] as String), estado: map['estado'] as String);
+    return Pedido(
+      id: map['id'] as int,
+      mesaId: map['mesa_id'] as int,
+      fecha: DateTime.parse(map['fecha_hora'] as String),
+      estado: map['estado'] as String,
+    );
   }
 }
 
-/// Modelo de detalle de un pedido
-class Detalle {
+class DetallesPedido {
   final String nombre;
   final int cantidad;
   final double precio;
 
-  Detalle({required this.nombre, required this.cantidad, required this.precio});
+  DetallesPedido({required this.nombre, required this.cantidad, required this.precio});
 
-  factory Detalle.fromMap(Map<String, dynamic> map) {
+  factory DetallesPedido.fromMap(Map<String, dynamic> map) {
     final plato = map['plato'] as Map<String, dynamic>;
-    return Detalle(nombre: plato['nombre'] as String, cantidad: map['cantidad'] as int, precio: (plato['precio'] as num).toDouble());
+    return DetallesPedido(
+      nombre: plato['nombre'] as String,
+      cantidad: map['cantidad'] as int,
+      precio: (plato['precio'] as num).toDouble(),
+    );
   }
 }
 
@@ -38,49 +50,60 @@ class PedidosScreen extends StatefulWidget {
 }
 
 class _PedidosScreenState extends State<PedidosScreen> {
-  late Future<List<Pedido>> _pedidosFuture;
+  late Future<List<Pedido>> _lstPedidos;
 
   @override
   void initState() {
     super.initState();
-    _pedidosFuture = _fetchPedidos();
+    _lstPedidos = _getPedidos();
   }
 
-  Future<List<Pedido>> _fetchPedidos() async {
-    final supa = Supabase.instance.client;
-    final raw = await supa.from('pedidos').select('id, mesa_id, fecha_hora, estado').order('fecha_hora', ascending: false);
-    final data = raw as List<dynamic>;
-    return data.map((e) => Pedido.fromMap(e as Map<String, dynamic>)).toList();
+  Future<List<Pedido>> _getPedidos() async {
+    final sql = Supabase.instance.client;
+    final pedidos = await sql
+        .from('pedidos')
+        .select('id, mesa_id, fecha_hora, estado')
+        .order('fecha_hora', ascending: false);
+    final pedidosDevolver = pedidos as List<dynamic>;
+    return pedidosDevolver.map((e) => Pedido.fromMap(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<Detalle>> _fetchDetalles(int pedidoId) async {
-    final supa = Supabase.instance.client;
-    final raw = await supa.from('pedido_detalle').select('cantidad, plato:platos(nombre, precio)').eq('pedido_id', pedidoId);
-    final data = raw as List<dynamic>;
-    return data.map((e) => Detalle.fromMap(e as Map<String, dynamic>)).toList();
+  Future<List<DetallesPedido>> _getDetalles(int pedidoId) async {
+    final sql = Supabase.instance.client;
+    final detalles = await sql
+        .from('pedido_detalle')
+        .select('cantidad, plato:platos(nombre, precio)')
+        .eq('pedido_id', pedidoId);
+    final detallesDevolver = detalles as List<dynamic>;
+    return detallesDevolver
+        .map((e) => DetallesPedido.fromMap(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> _marcarEntregado(int pedidoId) async {
-    final supa = Supabase.instance.client;
-    await supa.from('pedidos').update({'estado': 'ENTREGADO'}).eq('id', pedidoId).select();
+    final sql = Supabase.instance.client;
+    await sql.from('pedidos').update({'estado': 'ENTREGADO'}).eq('id', pedidoId).select();
     if (!mounted) return;
     setState(() {
-      _pedidosFuture = _fetchPedidos();
+      _lstPedidos = _getPedidos();
     });
   }
 
-  void _showDetalleDialog(Pedido pedido) {
+  void _popUpDetalles(Pedido pedido) {
     showDialog(
       context: context,
       barrierColor: Colors.black.withOpacity(0.6),
       builder: (dialogContext) {
         return AlertDialog(
           title: Text('Pedido #${pedido.id} - Mesa ${pedido.mesaId}'),
-          content: FutureBuilder<List<Detalle>>(
-            future: _fetchDetalles(pedido.id),
+          content: FutureBuilder<List<DetallesPedido>>(
+            future: _getDetalles(pedido.id),
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
-                return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                return const SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                );
               } else if (snap.hasError) {
                 return Text('Error: ${snap.error}');
               }
@@ -94,7 +117,10 @@ class _PedidosScreenState extends State<PedidosScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [Expanded(child: Text('${d.nombre} x${d.cantidad}')), Text('€${(d.precio * d.cantidad).toStringAsFixed(2)}')],
+                        children: [
+                          Expanded(child: Text('${d.nombre} x${d.cantidad}')),
+                          Text('€${(d.precio * d.cantidad).toStringAsFixed(2)}'),
+                        ],
                       ),
                     ),
                   ),
@@ -103,7 +129,10 @@ class _PedidosScreenState extends State<PedidosScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Total:', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text('€${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        '€${total.toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ],
@@ -118,7 +147,10 @@ class _PedidosScreenState extends State<PedidosScreen> {
               },
               child: const Text('Entregado'),
             ),
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cerrar')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cerrar'),
+            ),
           ],
         );
       },
@@ -128,7 +160,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Pedido>>(
-      future: _pedidosFuture,
+      future: _lstPedidos,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -152,7 +184,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
               child: ListTile(
                 title: Text('Pedido #${pedido.id} - Mesa ${pedido.mesaId}'),
                 subtitle: Text('Hora: $hora • Estado: ${pedido.estado}'),
-                onTap: () => _showDetalleDialog(pedido),
+                onTap: () => _popUpDetalles(pedido),
               ),
             );
           },

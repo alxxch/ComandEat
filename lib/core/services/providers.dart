@@ -9,7 +9,6 @@ final mesaIdProvider = StateProvider<int?>((_) => null);
 
 final pedidoRepoProvider = Provider<PedidoRepository>((ref) {
   final mesaId = ref.watch(mesaIdProvider) ?? 0;
-  // O lanza si es null: throw StateError('Mesa no inicializada');
   return PedidoRepository(mesaId);
 });
 
@@ -22,8 +21,8 @@ final menuControllerProvider = FutureProvider<List<Plato>>((ref) {
 final notificationRepoProvider = Provider((_) => NotificationRepository());
 
 final notificacionesCountProvider = FutureProvider<int>((ref) async {
-  final supa = Supabase.instance.client;
-  final raw = await supa.from('notificaciones').select('id');
-  final list = raw as List<dynamic>;
-  return list.length;
+  final sql = Supabase.instance.client;
+  final notis = await sql.from('notificaciones').select('id');
+  final lstNotis = notis as List<dynamic>;
+  return lstNotis.length;
 });

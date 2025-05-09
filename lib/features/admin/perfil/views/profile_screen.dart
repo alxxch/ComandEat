@@ -1,8 +1,5 @@
-// lib/features/admin/screens/profile_screen.dart
-
 import 'package:flutter/material.dart';
 
-/// Pantalla de perfil del restaurante
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -11,24 +8,22 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Controladores para simular datos de perfil
-  final _nameController = TextEditingController(text: 'Mesón Paco');
-  final _addressController = TextEditingController(text: 'Calle Mayor, 123');
-  final _phoneController = TextEditingController(text: '+34 600 123 456');
+  final _ctrNombre = TextEditingController(text: 'Mesón Paco');
+  final _ctrDireccion = TextEditingController(text: 'Calle Mayor, 123');
+  final _ctrTelefono = TextEditingController(text: '+34 600 123 456');
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _addressController.dispose();
-    _phoneController.dispose();
+    _ctrNombre.dispose();
+    _ctrDireccion.dispose();
+    _ctrTelefono.dispose();
     super.dispose();
   }
 
-  void _saveProfile() {
-    // TODO: Lógica para guardar cambios en Supabase
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perfil guardado con éxito')),
-    );
+  void _savePerfil() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Perfil guardado - No implementado')));
   }
 
   @override
@@ -43,13 +38,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: Theme.of(context).textTheme.headlineLarge,
           ),
           const SizedBox(height: 16),
-
-          // Formulario de perfil
           Card(
             elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -57,36 +48,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   const Text(
                     'Información básica',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-
-                  // Nombre
                   TextField(
-                    controller: _nameController,
+                    controller: _ctrNombre,
                     decoration: const InputDecoration(
                       labelText: 'Nombre',
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Dirección
                   TextField(
-                    controller: _addressController,
+                    controller: _ctrDireccion,
                     decoration: const InputDecoration(
                       labelText: 'Dirección',
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Teléfono
                   TextField(
-                    controller: _phoneController,
+                    controller: _ctrTelefono,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       labelText: 'Teléfono',
@@ -94,12 +76,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Botón Guardar
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _saveProfile,
+                      onPressed: _savePerfil,
                       child: const Text('Guardar cambios'),
                     ),
                   ),

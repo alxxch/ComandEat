@@ -7,14 +7,11 @@ import '../routes/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await dotenv.load(fileName: '.env');
-  debugPrint('Supabase URL → ${dotenv.env['SUPABASE_URL']}'); //Debug para comprobar la url de supabase escrita en .env
 
   await Supabase.initialize(
-    url:   dotenv.env['SUPABASE_URL']!,
+    url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
@@ -32,8 +29,6 @@ class ComandEatClienteApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-
-        // Paleta suave y fondo
         colorScheme: ColorScheme.light(
           primary: const Color(0xFF6FA8DC),
           secondary: const Color(0xFFF9CB9C),
@@ -42,58 +37,39 @@ class ComandEatClienteApp extends StatelessWidget {
           onSecondary: Colors.black87,
           onSurface: Colors.black87,
         ),
-
         scaffoldBackgroundColor: Colors.grey.shade50,
-
-        // AppBar limpio
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
           elevation: 0,
         ),
-
-        // ListTile / Card con bordes redondeados
         cardTheme: CardTheme(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 1,
           color: Colors.white,
         ),
         listTileTheme: ListTileThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           tileColor: Colors.white,
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
-
-        // ChoiceChip estilizado
         chipTheme: ChipThemeData(
           backgroundColor: Colors.grey.shade200,
           selectedColor: const Color(0xFF6FA8DC),
           labelStyle: const TextStyle(color: Colors.black87),
           secondaryLabelStyle: const TextStyle(color: Colors.white),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-
-        // TextField suave
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.grey.shade200,
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide.none,
           ),
         ),
-
-        // BottomNavigationBar limpio
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFF6FA8DC),
@@ -102,8 +78,6 @@ class ComandEatClienteApp extends StatelessWidget {
           elevation: 4,
           type: BottomNavigationBarType.fixed,
         ),
-
-        // FloatingActionButton minimalista
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: Color(0xFFF9CB9C),
           foregroundColor: Colors.black87,
