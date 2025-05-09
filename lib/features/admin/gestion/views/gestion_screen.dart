@@ -28,28 +28,43 @@ class _GestionScreenState extends State<GestionScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _selectedCategoria == null) return;
     setState(() => _saving = true);
+
     final supa = Supabase.instance.client;
     final categoriaId = _categorias.indexOf(_selectedCategoria!) + 1;
-    final res = await supa
-        .from('platos')
-        .insert({
-      'nombre': _nombreController.text.trim(),
-      'descripcion': _descripcionController.text.trim(),
-      'precio': double.parse(_precioController.text),
-      'categoria_id': categoriaId,
-    });
-    setState(() => _saving = false);
-    if (res.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${res.error!.message}')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Plato agregado con éxito')));
+
+    try {
+      final data = await supa
+          .from('platos')
+          .insert({
+        'nombre': _nombreController.text.trim(),
+        'descripcion': _descripcionController.text.trim(),
+        'precio': double.parse(_precioController.text),
+        'categoria_id': categoriaId,
+      }).select();
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plato agregado con éxito')),
+      );
       _formKey.currentState!.reset();
       _nombreController.clear();
       _descripcionController.clear();
       _precioController.clear();
       setState(() => _selectedCategoria = null);
+
+    } on PostgrestException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar plato: ${e.message}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error inesperado: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
