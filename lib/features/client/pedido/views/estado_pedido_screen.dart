@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
-import '../controllers/pedido_controller.dart';
+
 import '../../../../core/models/estado_pedido.dart';
+import '../../../../core/services/providers.dart';
 
 class EstadoPedidoScreen extends ConsumerStatefulWidget {
   const EstadoPedidoScreen({super.key, required this.pedidoId});
@@ -15,22 +17,19 @@ class EstadoPedidoScreen extends ConsumerStatefulWidget {
 }
 
 class _EstadoPedidoScreenState extends ConsumerState<EstadoPedidoScreen> {
-  late final Stopwatch _watch;
-  late Timer _ticker;
+  late final Stopwatch _reloj;
+  late Timer _crono;
 
   @override
   void initState() {
     super.initState();
-    _watch = Stopwatch()..start();
-    _ticker = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => setState(() {}),
-    );
+    _reloj = Stopwatch()..start();
+    _crono = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
   @override
   void dispose() {
-    _ticker.cancel();
+    _crono.cancel();
     super.dispose();
   }
 
@@ -63,31 +62,25 @@ class _EstadoPedidoScreenState extends ConsumerState<EstadoPedidoScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  estado.estado,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
+                Text(estado.estado, style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center, // centra stepper
                   children:
                       pasos.map((p) {
-                        final reached = p.index <= estado.index;
+                        final estadoPos = p.index <= estado.index;
                         return Column(
                           children: [
                             CircleAvatar(
                               radius: 14,
                               backgroundColor:
-                                  reached
+                                  estadoPos
                                       ? Theme.of(context).colorScheme.primary
                                       : Colors.grey.shade300,
                               child: Icon(
                                 p.icono,
                                 size: 16,
-                                color:
-                                    reached
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
+                                color: estadoPos ? Colors.white : Colors.grey.shade600,
                               ),
                             ),
                             if (p != pasos.last)
@@ -95,10 +88,8 @@ class _EstadoPedidoScreenState extends ConsumerState<EstadoPedidoScreen> {
                                 height: 24,
                                 child: VerticalDivider(
                                   color:
-                                      reached
-                                          ? Theme.of(
-                                            context,
-                                          ).colorScheme.primary
+                                      estadoPos
+                                          ? Theme.of(context).colorScheme.primary
                                           : Colors.grey.shade300,
                                   thickness: 2,
                                 ),
@@ -109,7 +100,7 @@ class _EstadoPedidoScreenState extends ConsumerState<EstadoPedidoScreen> {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  _formatDuration(_watch.elapsed),
+                  _formatDuration(_reloj.elapsed),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Text('Tiempo transcurrido'),

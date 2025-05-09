@@ -10,7 +10,7 @@ final menuRepoProvider = Provider<MenuRepository>((ref) {
 class MenuRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
-  Future<List<Plato>> obtenerPlatos() async {
+  Future<List<Plato>> getPlatos() async {
     final allPlatos =
         await _client
                 .from('platos')

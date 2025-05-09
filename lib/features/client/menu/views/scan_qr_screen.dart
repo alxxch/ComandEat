@@ -1,8 +1,8 @@
-import 'package:go_router/go_router.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+
 import '../../../../core/services/providers.dart';
 
 class ScanQrScreen extends ConsumerStatefulWidget {
@@ -13,13 +13,13 @@ class ScanQrScreen extends ConsumerStatefulWidget {
 }
 
 class _ScanQrScreenState extends ConsumerState<ScanQrScreen> {
-  late final MobileScannerController _controller;
-  bool _found = false;
+  late final MobileScannerController _ctrScanner;
+  bool _detectedQR = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = MobileScannerController(
+    _ctrScanner = MobileScannerController(
       torchEnabled: false,
       formats: [BarcodeFormat.qrCode],
     );
@@ -27,24 +27,22 @@ class _ScanQrScreenState extends ConsumerState<ScanQrScreen> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ctrScanner.dispose();
     super.dispose();
   }
 
-  void _onDetect(Barcode barcode, MobileScannerArguments? args) {
-    if (_found) return;            // evita doble disparo
-    final raw = barcode.rawValue;
-    if (raw == null) return;
-
-    final mesaId = int.tryParse(raw);
+  void _detectQR(Barcode barcode, MobileScannerArguments? args) {
+    if (_detectedQR) return;
+    final rawQR = barcode.rawValue;
+    if (rawQR == null) return;
+    final mesaId = int.tryParse(rawQR);
     if (mesaId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('QR no válido para mesa')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('QR no válido para mesa')));
       return;
     }
-    _found = true;
-    // guardamos la mesa y navegamos
+    _detectedQR = true;
     ref.read(mesaIdProvider.notifier).state = mesaId;
     context.goNamed('home');
   }
@@ -61,23 +59,24 @@ class _ScanQrScreenState extends ConsumerState<ScanQrScreen> {
       body: Stack(
         children: [
           MobileScanner(
-            controller: _controller,
+            controller: _ctrScanner,
             allowDuplicates: false,
-            onDetect: _onDetect,
+            onDetect: _detectQR,
           ),
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: FloatingActionButton(
-                onPressed: () => _controller.toggleTorch(),
+                onPressed: () => _ctrScanner.toggleTorch(),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
                 backgroundColor: Colors.white,
                 child: ValueListenableBuilder<TorchState>(
-                  valueListenable: _controller.torchState,
-                  builder: (_, state, __) => Icon(
-                      state == TorchState.off ? Icons.flash_off : Icons.flash_on
-                  ),
+                  valueListenable: _ctrScanner.torchState,
+                  builder:
+                      (_, state, __) => Icon(
+                        state == TorchState.off ? Icons.flash_off : Icons.flash_on,
+                      ),
                 ),
               ),
             ),

@@ -1,12 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../core/models/estado_pedido.dart';
 
-final pedidoControllerProvider = StateNotifierProvider.family<
-  PedidoController,
-  AsyncValue<EstadoPedido>,
-  int
->((ref, pedidoId) => PedidoController(pedidoId));
+import '../../../../core/models/estado_pedido.dart';
 
 class PedidoController extends StateNotifier<AsyncValue<EstadoPedido>> {
   PedidoController(this._pedidoId) : super(const AsyncValue.loading()) {
@@ -17,22 +12,17 @@ class PedidoController extends StateNotifier<AsyncValue<EstadoPedido>> {
   late RealtimeChannel _channel;
 
   Future<void> _init() async {
-    final initial =
+    final sql =
         await Supabase.instance.client
             .from('pedidos')
             .select('estado')
             .eq('id', _pedidoId)
             .maybeSingle();
-
-    if (initial == null) {
+    if (sql == null) {
       state = AsyncValue.error('Pedido no encontrado', StackTrace.current);
       return;
     }
-
-    state = AsyncValue.data(
-      EstadoPedidoX.fromString(initial['estado'] as String),
-    );
-
+    state = AsyncValue.data(EstadoPedidoX.fromString(sql['estado'] as String));
     _channel =
         Supabase.instance.client
             .channel('public:pedidos')

@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/models/pedido.dart';
 
-final pedidosAdminProvider = StateNotifierProvider<PedidosController, List<Pedido>>((ref) => PedidosController());
+final pedidosAdminProvider = StateNotifierProvider<PedidosController, List<Pedido>>(
+  (ref) => PedidosController(),
+);
 
 class PedidosController extends StateNotifier<List<Pedido>> {
   PedidosController() : super([]) {
@@ -26,8 +29,11 @@ class PedidosController extends StateNotifier<List<Pedido>> {
             .subscribe();
   }
 
-  Future<void> actualizarEstado(int pedidoId, EstadoPedido nuevoEstado) async {
-    await Supabase.instance.client.from('pedidos').update({'estado': nuevoEstado.name.toUpperCase()}).eq('id', pedidoId);
+  Future<void> actualizarEstado(int pedidoId, EstadoPedido newEstado) async {
+    await Supabase.instance.client
+        .from('pedidos')
+        .update({'estado': newEstado.name.toUpperCase()})
+        .eq('id', pedidoId);
   }
 
   @override

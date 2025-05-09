@@ -12,9 +12,8 @@ class CarritoScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final carrito = ref.watch(carritoControllerProvider);
-    final carritoCtrl = ref.read(carritoControllerProvider.notifier);
-    final pedidoRepo = ref.read(pedidoRepoProvider);
-
+    final ctrCarrito = ref.read(carritoControllerProvider.notifier);
+    final RepoProv = ref.read(pedidoRepoProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Carrito')),
       body:
@@ -28,7 +27,6 @@ class CarritoScreen extends ConsumerWidget {
                       itemBuilder: (context, index) {
                         final Plato plato = carrito.keys.elementAt(index);
                         final int qty = carrito[plato]!;
-
                         return Dismissible(
                           key: ValueKey(plato.id),
                           direction: DismissDirection.endToStart,
@@ -38,13 +36,25 @@ class CarritoScreen extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: const Icon(Icons.delete, color: Colors.white),
                           ),
-                          onDismissed: (_) => carritoCtrl.quitarPorCompleto(plato),
+                          onDismissed: (_) => ctrCarrito.quitarPorCompleto(plato),
                           child: ListTile(
-                            leading: plato.fotoUrl != null ? Image.network(plato.fotoUrl!, width: 50, fit: BoxFit.cover) : const Icon(Icons.fastfood),
+                            leading:
+                                plato.fotoUrl != null
+                                    ? Image.network(
+                                      plato.fotoUrl!,
+                                      width: 50,
+                                      fit: BoxFit.cover,
+                                    )
+                                    : const Icon(Icons.fastfood),
                             title: Text(plato.nombre),
-                            subtitle: Text('${(plato.precio * qty).toStringAsFixed(2)} €'),
-                            trailing: Text('x$qty', style: Theme.of(context).textTheme.titleMedium),
-                            onTap: () => carritoCtrl.quitarUno(plato),
+                            subtitle: Text(
+                              '${(plato.precio * qty).toStringAsFixed(2)} €',
+                            ),
+                            trailing: Text(
+                              'x$qty',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            onTap: () => ctrCarrito.delete1Plato(plato),
                           ),
                         );
                       },
@@ -56,7 +66,12 @@ class CarritoScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Total', style: Theme.of(context).textTheme.titleMedium),
-                        Text('${carritoCtrl.total().toStringAsFixed(2)} €', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          '${ctrCarrito.total().toStringAsFixed(2)} €',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   ),
@@ -76,14 +91,16 @@ class CarritoScreen extends ConsumerWidget {
                       ),
                       onPressed: () async {
                         try {
-                          final idPedido = await pedidoRepo.sendPedido(carrito);
-                          carritoCtrl.limpiar();
+                          final idPedido = await RepoProv.sendPedido(carrito);
+                          ctrCarrito.clean();
                           if (context.mounted) {
                             context.toEstadoPedido(idPedido);
                           }
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text('Error: $e')));
                           }
                         }
                       },

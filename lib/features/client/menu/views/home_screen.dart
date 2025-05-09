@@ -3,11 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/providers.dart' hide menuControllerProvider;
+import '../../../../core/services/providers.dart';
 import '../../../../core/utils/allergen_icons.dart';
 import '../../carrito/controllers/carrito_controller.dart';
 import '../../carrito/views/carrito_screen.dart';
-import '../controllers/menu_controller.dart';
 
 class Categoria {
   final int id;
@@ -23,32 +22,36 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProviderStateMixin {
-  int _selectedTab = 0;
-  String _searchQuery = '';
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  int _categoriaActiva = 0;
+  String _filtroBusqueda = '';
   bool _isExpanded = false;
   late FocusNode _focusNode;
-
-  // Lista estática de categorías
-  final List<Categoria> categorias = const [Categoria(1, 'Entrantes'), Categoria(2, 'Pizzas'), Categoria(3, 'Postres'), Categoria(4, 'Bebidas')];
-
+  final List<Categoria> categorias = const [
+    Categoria(1, 'Entrantes'),
+    Categoria(2, 'Pizzas'),
+    Categoria(3, 'Postres'),
+    Categoria(4, 'Bebidas'),
+  ];
   late Categoria _categoriaSeleccionada;
-  late final AnimationController _animCtrl;
+  late final AnimationController _ctrAnimacion;
   late final CurvedAnimation _curve;
 
   @override
   void initState() {
     super.initState();
     _categoriaSeleccionada = categorias.first;
-
-    _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-    _curve = CurvedAnimation(parent: _animCtrl, curve: Curves.easeInOut);
-
-    _focusNode = FocusNode(); // Inicializamos el FocusNode
+    _ctrAnimacion = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _curve = CurvedAnimation(parent: _ctrAnimacion, curve: Curves.easeInOut);
+    _focusNode = FocusNode();
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
         setState(() {
-          _isExpanded = false; // Al perder foco, colapsamos
+          _isExpanded = false;
         });
       }
     });
@@ -57,51 +60,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   @override
   void dispose() {
     _focusNode.dispose();
-    _animCtrl.dispose();
+    _ctrAnimacion.dispose();
     super.dispose();
   }
 
-  Future<void> _runAddToCartAnimation(GlobalKey imageKey) async {
+  Future<void> _animacionAddCarrito(GlobalKey imageKey) async {
     final overlay = Overlay.of(context);
     if (overlay == null) return;
-
-    final renderBox = imageKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    final startOffset = renderBox.localToGlobal(Offset.zero);
-    final startSize = renderBox.size;
-
-    final screenSize = MediaQuery.of(context).size;
-    final endOffset = Offset(screenSize.width - 40, screenSize.height - 80);
-
-    final imageWidget = imageKey.currentWidget;
-    String? imageUrl;
-    if (imageWidget is Image && imageWidget.image is NetworkImage) {
-      imageUrl = (imageWidget.image as NetworkImage).url;
+    final render = imageKey.currentContext?.findRenderObject() as RenderBox?;
+    if (render == null) return;
+    final startPos = render.localToGlobal(Offset.zero);
+    final tamano = render.size;
+    final pantallaTamano = MediaQuery.of(context).size;
+    final endPos = Offset(pantallaTamano.width - 40, pantallaTamano.height - 80);
+    final imagenWidget = imageKey.currentWidget;
+    String? imagenUrl;
+    if (imagenWidget is Image && imagenWidget.image is NetworkImage) {
+      imagenUrl = (imagenWidget.image as NetworkImage).url;
     }
-    if (imageUrl == null) return;
-
-    final entry = OverlayEntry(
+    if (imagenUrl == null) return;
+    final overEntry = OverlayEntry(
       builder: (ctx) {
         return AnimatedBuilder(
           animation: _curve,
           builder: (ctx, child) {
-            final dx = lerpDouble(startOffset.dx, endOffset.dx, _curve.value)!;
-            final dy = lerpDouble(startOffset.dy, endOffset.dy, _curve.value)!;
-            final size = lerpDouble(startSize.width, 24, _curve.value)!;
-            return Positioned(left: dx, top: dy, child: SizedBox(width: size, height: size, child: child));
+            final posX = lerpDouble(startPos.dx, endPos.dx, _curve.value)!;
+            final posY = lerpDouble(startPos.dy, endPos.dy, _curve.value)!;
+            final size = lerpDouble(tamano.width, 24, _curve.value)!;
+            return Positioned(
+              left: posX,
+              top: posY,
+              child: SizedBox(width: size, height: size, child: child),
+            );
           },
-          child: Image.network(imageUrl!, fit: BoxFit.cover),
+          child: Image.network(imagenUrl!, fit: BoxFit.cover),
         );
       },
     );
-
-    overlay.insert(entry);
-    await _animCtrl.forward();
-    entry.remove();
-    _animCtrl.reset();
+    overlay.insert(overEntry);
+    await _ctrAnimacion.forward();
+    overEntry.remove();
+    _ctrAnimacion.reset();
   }
 
-  Future<void> _onCallWaiter() async {
+  Future<void> _callCamarero() async {
     final mesaId = ref.read(mesaIdProvider);
     if (mesaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,7 +114,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
     try {
       await ref.read(notificationRepoProvider).callCamarero(mesaId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Camarero llamado!')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('¡Camarero llamado!')));
       }
     } catch (e, st) {
       debugPrint('Error al llamar: $e\n$st');
@@ -125,14 +129,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     final platosAsync = ref.watch(menuControllerProvider);
-
     return Scaffold(
-      appBar: AppBar(title: const Text('ComandEat', style: TextStyle(color: Colors.black)), centerTitle: true, backgroundColor: Colors.white, elevation: 0),
+      appBar: AppBar(
+        title: const Text('ComandEat', style: TextStyle(color: Colors.black)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body:
-          _selectedTab == 0
+          _categoriaActiva == 0
               ? Column(
                 children: [
-                  // ─── Selector de categorías ───
                   SizedBox(
                     height: 48,
                     child: ListView.builder(
@@ -140,22 +147,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       itemCount: categorias.length,
                       itemBuilder: (context, i) {
-                        final cat = categorias[i];
-                        final isSelected = cat.id == _categoriaSeleccionada.id;
+                        final categoria = categorias[i];
+                        final isActiva = categoria.id == _categoriaSeleccionada.id;
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: ChoiceChip(
-                            label: Text(cat.nombre, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
-                            selected: isSelected,
+                            label: Text(
+                              categoria.nombre,
+                              style: TextStyle(
+                                color: isActiva ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            selected: isActiva,
                             selectedColor: Colors.grey[400],
                             backgroundColor: Colors.grey[200],
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             showCheckmark: false,
                             side: BorderSide(color: Colors.transparent),
                             onSelected: (_) {
                               setState(() {
-                                _categoriaSeleccionada = cat;
-                                _searchQuery = '';
+                                _categoriaSeleccionada = categoria;
+                                _filtroBusqueda = '';
                               });
                             },
                           ),
@@ -163,8 +177,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       },
                     ),
                   ),
-
-                  // ─── Barra de búsqueda ───
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: AnimatedContainer(
@@ -172,7 +184,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       width: _isExpanded ? MediaQuery.of(context).size.width - 50 : 50,
                       height: 50,
                       curve: Curves.easeInOut,
-                      decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -180,7 +195,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                             width: 50,
                             height: 50,
                             child: Center(
-                              // <-- Centrar el IconButton en su espacio
                               child: IconButton(
                                 icon: const Icon(Icons.search),
                                 onPressed: () {
@@ -197,10 +211,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                               child: TextField(
                                 focusNode: _focusNode,
                                 autofocus: true,
-                                decoration: const InputDecoration(hintText: 'Buscar plato...', border: InputBorder.none),
+                                decoration: const InputDecoration(
+                                  hintText: 'Buscar plato...',
+                                  border: InputBorder.none,
+                                ),
                                 onChanged: (text) {
                                   setState(() {
-                                    _searchQuery = text;
+                                    _filtroBusqueda = text;
                                   });
                                 },
                               ),
@@ -209,96 +226,141 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       ),
                     ),
                   ),
-
-                  // ─── Lista de platos ───
                   Expanded(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       switchInCurve: Curves.easeIn,
                       switchOutCurve: Curves.easeOut,
                       child: KeyedSubtree(
-                        key: ValueKey('${_categoriaSeleccionada.id}|$_searchQuery'),
+                        key: ValueKey('${_categoriaSeleccionada.id}|$_filtroBusqueda'),
                         child: platosAsync.when(
                           loading: () => const Center(child: CircularProgressIndicator()),
                           error: (e, _) => Center(child: Text('Error: ${e.toString()}')),
                           data: (platos) {
-                            final list =
+                            final lstPlatos =
                                 platos.where((p) {
-                                  final matchCat = p.categoriaId == _categoriaSeleccionada.id;
-                                  final matchSearch = _searchQuery.isEmpty || p.nombre.toLowerCase().contains(_searchQuery.toLowerCase());
-                                  return matchCat && matchSearch;
+                                  final matchCategoria =
+                                      p.categoriaId == _categoriaSeleccionada.id;
+                                  final matchBusqueda =
+                                      _filtroBusqueda.isEmpty ||
+                                      p.nombre.toLowerCase().contains(
+                                        _filtroBusqueda.toLowerCase(),
+                                      );
+                                  return matchCategoria && matchBusqueda;
                                 }).toList();
 
-                            if (list.isEmpty) {
+                            if (lstPlatos.isEmpty) {
                               return const Center(child: Text('Sin platos'));
                             }
                             return ListView.builder(
                               padding: const EdgeInsets.symmetric(vertical: 8),
-                              itemCount: list.length,
+                              itemCount: lstPlatos.length,
                               itemBuilder: (context, idx) {
-                                final p = list[idx];
-                                final imageKey = GlobalKey();
+                                final plato = lstPlatos[idx];
+                                final imagenKey = GlobalKey();
                                 return Dismissible(
-                                  key: ValueKey(p.id),
+                                  key: ValueKey(plato.id),
                                   direction: DismissDirection.startToEnd,
                                   background: Container(
                                     color: Colors.black87,
                                     alignment: Alignment.centerLeft,
                                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    child: const Icon(Icons.add_shopping_cart, color: Colors.white),
+                                    child: const Icon(
+                                      Icons.add_shopping_cart,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                   confirmDismiss: (_) async {
-                                    await _runAddToCartAnimation(imageKey);
-                                    ref.read(carritoControllerProvider.notifier).agregar(p);
+                                    await _animacionAddCarrito(imagenKey);
+                                    ref
+                                        .read(carritoControllerProvider.notifier)
+                                        .addPlato(plato);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('"${p.nombre}" añadido al carrito')),
+                                      SnackBar(
+                                        content: Text(
+                                          '"${plato.nombre}" añadido al carrito',
+                                        ),
+                                      ),
                                     );
                                   },
-
-                                  // Tarjeta centrada con ancho máximo y margen
                                   child: Center(
                                     child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 700, // ancho máximo
-                                      ),
+                                      constraints: const BoxConstraints(maxWidth: 700),
                                       child: Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Theme.of(context).colorScheme.surface,
                                           borderRadius: BorderRadius.circular(12),
-                                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.05),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
                                         child: ListTile(
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
                                           leading: ClipRRect(
                                             borderRadius: BorderRadius.circular(8),
                                             child:
-                                                p.fotoUrl != null
-                                                    ? Image.network(p.fotoUrl!, key: imageKey, width: 50, height: 50, fit: BoxFit.cover)
-                                                    : const Icon(Icons.fastfood, color: Colors.black),
+                                                plato.fotoUrl != null
+                                                    ? Image.network(
+                                                      plato.fotoUrl!,
+                                                      key: imagenKey,
+                                                      width: 50,
+                                                      height: 50,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                    : const Icon(
+                                                      Icons.fastfood,
+                                                      color: Colors.black,
+                                                    ),
                                           ),
-                                          title: Text(p.nombre),
+                                          title: Text(plato.nombre),
                                           subtitle: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text('${p.precio.toStringAsFixed(2)} €'),
+                                              Text(
+                                                '${plato.precio.toStringAsFixed(2)} €',
+                                              ),
                                               const SizedBox(height: 4),
                                               Wrap(
                                                 spacing: 6,
                                                 runSpacing: 4,
                                                 children:
-                                                    p.allergenTags.map((tag) {
-                                                      final icon = mapIconos[tag] ?? Icons.error;
-                                                      return Tooltip(message: tag, child: Icon(icon, size: 16, color: Colors.redAccent));
+                                                    plato.allergenTags.map((tag) {
+                                                      final icon =
+                                                          mapIconos[tag] ?? Icons.error;
+                                                      return Tooltip(
+                                                        message: tag,
+                                                        child: Icon(
+                                                          icon,
+                                                          size: 16,
+                                                          color: Colors.redAccent,
+                                                        ),
+                                                      );
                                                     }).toList(),
                                               ),
                                             ],
                                           ),
                                           onTap: () async {
-                                            await _runAddToCartAnimation(imageKey);
-                                            ref.read(carritoControllerProvider.notifier).agregar(p);
+                                            await _animacionAddCarrito(imagenKey);
+                                            ref
+                                                .read(carritoControllerProvider.notifier)
+                                                .addPlato(plato);
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('"${p.nombre}" añadido al carrito')),
+                                              SnackBar(
+                                                content: Text(
+                                                  '"${plato.nombre}" añadido al carrito',
+                                                ),
+                                              ),
                                             );
                                           },
                                         ),
@@ -316,20 +378,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                 ],
               )
               : const CarritoScreen(),
-
-      // Botón circular “Llamar camarero”
       floatingActionButton: FloatingActionButton(
-        onPressed: _onCallWaiter,
+        onPressed: _callCamarero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
         backgroundColor: Colors.white,
         child: const Icon(Icons.notifications, color: Colors.black),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
-      // BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedTab,
-        onTap: (i) => setState(() => _selectedTab = i),
+        currentIndex: _categoriaActiva,
+        onTap: (i) => setState(() => _categoriaActiva = i),
         backgroundColor: Colors.white,
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey.shade600,
@@ -337,7 +395,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
         elevation: 4,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined, color: Colors.black54), activeIcon: Icon(Icons.home, color: Colors.black), label: 'Inicio'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined, color: Colors.black54),
+            activeIcon: Icon(Icons.home, color: Colors.black),
+            label: 'Inicio',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart_outlined, color: Colors.black54),
             activeIcon: Icon(Icons.shopping_cart, color: Colors.black),
