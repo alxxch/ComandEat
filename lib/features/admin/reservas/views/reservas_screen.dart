@@ -63,7 +63,7 @@ class _ReservasScreenState extends State<ReservasScreen> {
     // 1) Actualizar estado de reserva
     await supa
         .from('reservas')
-        .update({'estado': 'cancelada'})
+        .delete()
         .eq('id', reserva.id)
         .select();
     // 2) Liberar mesa asociada
@@ -102,7 +102,7 @@ class _ReservasScreenState extends State<ReservasScreen> {
               'dd/MM/yyyy',
             ).format(r.fechaHora.toLocal());
             final hora = DateFormat('HH:mm').format(r.fechaHora.toLocal());
-            final isCancelada = r.estado.toLowerCase() == 'cancelada';
+            final isCancelada = r.estado.toLowerCase() == 'CANCELADA';
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),

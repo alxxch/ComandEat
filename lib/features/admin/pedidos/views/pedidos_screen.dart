@@ -62,8 +62,11 @@ class _PedidosScreenState extends State<PedidosScreen> {
 
   Future<void> _marcarEntregado(int pedidoId) async {
     final supa = Supabase.instance.client;
-    await supa.from('pedidos').update({'estado': 'Entregado'}).eq('id', pedidoId).select();
-    setState(() => _pedidosFuture = _fetchPedidos());
+    await supa.from('pedidos').update({'estado': 'ENTREGADO'}).eq('id', pedidoId).select();
+    if (!mounted) return;
+    setState(() {
+      _pedidosFuture = _fetchPedidos();
+    });
   }
 
   void _showDetalleDialog(Pedido pedido) {
