@@ -9,8 +9,8 @@ import '../features/admin/login/views/login_screen.dart';
 import '../features/admin/pedidos/views/pedidos_screen.dart';
 import '../features/admin/perfil/views/profile_screen.dart';
 import '../features/admin/reservas/views/reservas_screen.dart';
-import '../features/client/menu/views/home_screen.dart';
-import '../features/client/menu/views/scan_qr_screen.dart';
+import '../features/client/home/views/home_screen.dart';
+import '../features/client/home/views/scan_qr_screen.dart';
 import '../features/client/pedido/views/estado_pedido_screen.dart';
 import '../features/client/splash/views/splash_screen.dart';
 

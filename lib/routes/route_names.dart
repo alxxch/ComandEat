@@ -1,7 +1,7 @@
 part of 'app_router.dart';
 
 abstract class RouteNames {
-  static const menu = 'menu';
+  static const menu = 'home';
   static const carrito = 'carrito';
   static const estadoPedido = 'estado_pedido';
 }

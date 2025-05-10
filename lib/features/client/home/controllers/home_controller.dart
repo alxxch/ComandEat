@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/models/plato.dart';
-import '../../../../core/services/menu_repository.dart';
+import '../../../../core/services/home_repository.dart';
 
-class MenuController extends StateNotifier<AsyncValue<List<Plato>>> {
-  MenuController(this._menuRepo) : super(const AsyncValue.loading()) {
+class HomeController extends StateNotifier<AsyncValue<List<Plato>>> {
+  HomeController(this._menuRepo) : super(const AsyncValue.loading()) {
     _cargar();
   }
 
-  final MenuRepository _menuRepo;
+  final HomeRepository _menuRepo;
 
   Future<void> _cargar() async {
     try {
