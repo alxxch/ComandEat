@@ -66,8 +66,8 @@ comandeat/
 ### 2. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/tuusuario/comandeat.git  
-cd comandeat
+git clone https://github.com/alxxch/ComandEat  
+cd ComandEat
 ```
 
 ### 3. Configurar variables de entorno
