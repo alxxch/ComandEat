@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../controllers/login_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -10,41 +11,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _ctrEmail = TextEditingController();
-  final _ctrPass = TextEditingController();
-  bool _isCargando = false;
+  late final LoginController ctr;
+  late final VoidCallback _listener;
 
   @override
-  void dispose() {
-    _ctrEmail.dispose();
-    _ctrPass.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    setState(() => _isCargando = true);
-    final sql = Supabase.instance.client;
-    try {
-      final resultado = await sql.auth.signInWithPassword(
-        email: _ctrEmail.text.trim(),
-        password: _ctrPass.text,
-      );
-      if (resultado.session == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Credenciales incorrectas')));
-      } else {
-        context.goNamed('home');
-      }
-    } on AuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
-    } finally {
-      setState(() => _isCargando = false);
-    }
+  void initState() {
+    super.initState();
+    ctr = LoginController();
+    _listener = () {
+      if (mounted) setState(() {});
+    };
+    ctr.addListener(_listener);
   }
 
   @override
@@ -71,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   TextField(
-                    controller: _ctrEmail,
+                    controller: ctr.email,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'Email',
@@ -80,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: _ctrPass,
+                    controller: ctr.pass,
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: 'Contraseña',
@@ -91,7 +68,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isCargando ? null : _submit,
+                      onPressed:
+                          ctr.isCargando
+                              ? null
+                              : () {
+                                ctr.submit(context, () => context.goNamed('home'));
+                              },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -99,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       child:
-                          _isCargando
+                          ctr.isCargando
                               ? const SizedBox(
                                 height: 20,
                                 width: 20,

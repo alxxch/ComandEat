@@ -1,46 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-class Pedido {
-  final int id;
-  final int mesaId;
-  final DateTime fecha;
-  final String estado;
-
-  Pedido({
-    required this.id,
-    required this.mesaId,
-    required this.fecha,
-    required this.estado,
-  });
-
-  factory Pedido.fromMap(Map<String, dynamic> map) {
-    return Pedido(
-      id: map['id'] as int,
-      mesaId: map['mesa_id'] as int,
-      fecha: DateTime.parse(map['fecha_hora'] as String),
-      estado: map['estado'] as String,
-    );
-  }
-}
-
-class DetallesPedido {
-  final String nombre;
-  final int cantidad;
-  final double precio;
-
-  DetallesPedido({required this.nombre, required this.cantidad, required this.precio});
-
-  factory DetallesPedido.fromMap(Map<String, dynamic> map) {
-    final plato = map['plato'] as Map<String, dynamic>;
-    return DetallesPedido(
-      nombre: plato['nombre'] as String,
-      cantidad: map['cantidad'] as int,
-      precio: (plato['precio'] as num).toDouble(),
-    );
-  }
-}
+import '../../../../core/models/pedido_detalle.dart';
+import '../controllers/pedidos_controller.dart';
 
 class PedidosScreen extends StatefulWidget {
   const PedidosScreen({Key? key}) : super(key: key);
@@ -50,43 +12,24 @@ class PedidosScreen extends StatefulWidget {
 }
 
 class _PedidosScreenState extends State<PedidosScreen> {
-  late Future<List<Pedido>> _lstPedidos;
+  late final PedidosController ctr;
+  late final VoidCallback _listener;
 
   @override
   void initState() {
     super.initState();
-    _lstPedidos = _getPedidos();
+    ctr = PedidosController();
+    _listener = () {
+      if (mounted) setState(() {});
+    };
+    ctr.addListener(_listener);
   }
 
-  Future<List<Pedido>> _getPedidos() async {
-    final sql = Supabase.instance.client;
-    final pedidos = await sql
-        .from('pedidos')
-        .select('id, mesa_id, fecha_hora, estado')
-        .order('fecha_hora', ascending: false);
-    final pedidosDevolver = pedidos as List<dynamic>;
-    return pedidosDevolver.map((e) => Pedido.fromMap(e as Map<String, dynamic>)).toList();
-  }
-
-  Future<List<DetallesPedido>> _getDetalles(int pedidoId) async {
-    final sql = Supabase.instance.client;
-    final detalles = await sql
-        .from('pedido_detalle')
-        .select('cantidad, plato:platos(nombre, precio)')
-        .eq('pedido_id', pedidoId);
-    final detallesDevolver = detalles as List<dynamic>;
-    return detallesDevolver
-        .map((e) => DetallesPedido.fromMap(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<void> _marcarEntregado(int pedidoId) async {
-    final sql = Supabase.instance.client;
-    await sql.from('pedidos').update({'estado': 'ENTREGADO'}).eq('id', pedidoId).select();
-    if (!mounted) return;
-    setState(() {
-      _lstPedidos = _getPedidos();
-    });
+  @override
+  void dispose() {
+    ctr.removeListener(_listener);
+    ctr.dispose();
+    super.dispose();
   }
 
   void _popUpDetalles(Pedido pedido) {
@@ -97,7 +40,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
         return AlertDialog(
           title: Text('Pedido #${pedido.id} - Mesa ${pedido.mesaId}'),
           content: FutureBuilder<List<DetallesPedido>>(
-            future: _getDetalles(pedido.id),
+            future: ctr.getDetalles(pedido.id),
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
                 return const SizedBox(
@@ -140,13 +83,15 @@ class _PedidosScreenState extends State<PedidosScreen> {
             },
           ),
           actions: [
-            TextButton(
-              onPressed: () async {
-                await _marcarEntregado(pedido.id);
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Entregado'),
-            ),
+            if (pedido.estado != 'ENTREGADO') ...[
+              TextButton(
+                onPressed: () async {
+                  await ctr.marcarEntregado(pedido.id);
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('Entregado'),
+              ),
+            ],
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cerrar'),
@@ -160,7 +105,7 @@ class _PedidosScreenState extends State<PedidosScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Pedido>>(
-      future: _lstPedidos,
+      future: ctr.lstPedidos,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

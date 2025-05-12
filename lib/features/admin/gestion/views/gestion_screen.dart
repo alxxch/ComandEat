@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../controllers/gestion_controller.dart';
 
 class GestionScreen extends StatefulWidget {
   const GestionScreen({Key? key}) : super(key: key);
@@ -9,55 +10,22 @@ class GestionScreen extends StatefulWidget {
 }
 
 class _GestionScreenState extends State<GestionScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _ctrNombre = TextEditingController();
-  final ctrDescripcion = TextEditingController();
-  final ctrPrecio = TextEditingController();
-  String? _selectCategoria;
-  final List<String> _categorias = const ['Entrantes', 'Pizzas', 'Postres', 'Bebidas'];
-  bool _checkGuardar = false;
+  late final GestionController ctr;
+
+  @override
+  void initState() {
+    super.initState();
+    ctr = GestionController(context);
+    ctr.bind(() {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
-    _ctrNombre.dispose();
-    ctrDescripcion.dispose();
-    ctrPrecio.dispose();
+    ctr.unbind();
+    ctr.dispose();
     super.dispose();
-  }
-
-  Future<void> _sendPlato() async {
-    if (!_formKey.currentState!.validate() || _selectCategoria == null) return;
-    setState(() => _checkGuardar = true);
-    final sql = Supabase.instance.client;
-    final categoriaId = _categorias.indexOf(_selectCategoria!) + 1;
-    try {
-      final data =
-          await sql.from('platos').insert({
-            'nombre': _ctrNombre.text.trim(),
-            'descripcion': ctrDescripcion.text.trim(),
-            'precio': double.parse(ctrPrecio.text),
-            'categoria_id': categoriaId,
-          }).select();
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Plato agregado con éxito')));
-      _formKey.currentState!.reset();
-      _ctrNombre.clear();
-      ctrDescripcion.clear();
-      ctrPrecio.clear();
-      setState(() => _selectCategoria = null);
-    } on PostgrestException catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al guardar plato: ${e.message}')));
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
-    } finally {
-      if (mounted) setState(() => _checkGuardar = false);
-    }
   }
 
   @override
@@ -78,7 +46,7 @@ class _GestionScreenState extends State<GestionScreen> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Form(
-                key: _formKey,
+                key: ctr.formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -88,7 +56,7 @@ class _GestionScreenState extends State<GestionScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: _ctrNombre,
+                      controller: ctr.nombre,
                       decoration: const InputDecoration(
                         labelText: 'Nombre del plato',
                         border: OutlineInputBorder(),
@@ -97,7 +65,7 @@ class _GestionScreenState extends State<GestionScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: ctrDescripcion,
+                      controller: ctr.descripcion,
                       decoration: const InputDecoration(
                         labelText: 'Descripción',
                         border: OutlineInputBorder(),
@@ -106,7 +74,7 @@ class _GestionScreenState extends State<GestionScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: ctrPrecio,
+                      controller: ctr.precio,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         labelText: 'Precio',
@@ -122,25 +90,25 @@ class _GestionScreenState extends State<GestionScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: _selectCategoria,
+                      value: ctr.selectedCategoria,
                       items:
-                          _categorias
+                          ctr.categorias
                               .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                               .toList(),
                       decoration: const InputDecoration(
                         labelText: 'Categoría',
                         border: OutlineInputBorder(),
                       ),
-                      onChanged: (v) => setState(() => _selectCategoria = v),
+                      onChanged: (v) => setState(() => ctr.selectedCategoria = v),
                       validator: (v) => v == null ? 'Seleccione categoría' : null,
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _checkGuardar ? null : _sendPlato,
+                        onPressed: ctr.checkGuardar ? null : ctr.sendPlato,
                         child:
-                            _checkGuardar
+                            ctr.checkGuardar
                                 ? const SizedBox(
                                   height: 16,
                                   width: 16,

@@ -1,32 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-class Notificacion {
-  final int id;
-  final int mesaId;
-  final String tipo;
-  final DateTime fechaHora;
-  final bool atendida;
-
-  Notificacion({
-    required this.id,
-    required this.mesaId,
-    required this.tipo,
-    required this.fechaHora,
-    required this.atendida,
-  });
-
-  factory Notificacion.fromMap(Map<String, dynamic> m) {
-    return Notificacion(
-      id: m['id'] as int,
-      mesaId: m['mesa_id'] as int,
-      tipo: m['tipo'] as String,
-      fechaHora: DateTime.parse(m['fecha_hora'] as String),
-      atendida: m['atendida'] as bool,
-    );
-  }
-}
+import '../../../../core/models/notificacion.dart';
+import '../controllers/notificaciones_controller.dart';
 
 class NotificacionesScreen extends StatefulWidget {
   const NotificacionesScreen({Key? key}) : super(key: key);
@@ -36,46 +12,24 @@ class NotificacionesScreen extends StatefulWidget {
 }
 
 class _NotificacionesScreenState extends State<NotificacionesScreen> {
-  late Future<List<Notificacion>> _lstNotis;
+  late final NotificacionesController ctr;
+  late final VoidCallback _listener;
 
   @override
   void initState() {
     super.initState();
-    _lstNotis = _getNotificaciones();
+    ctr = NotificacionesController();
+    _listener = () {
+      if (mounted) setState(() {});
+    };
+    ctr.addListener(_listener);
   }
 
-  Future<List<Notificacion>> _getNotificaciones() async {
-    final sql = Supabase.instance.client;
-    final notis = await sql
-        .from('notificaciones')
-        .select('id, mesa_id, tipo, fecha_hora, atendida')
-        .order('fecha_hora', ascending: false);
-    final notisDevolver = notis as List<dynamic>;
-    return notisDevolver
-        .map((e) => Notificacion.fromMap(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<void> _marcarAtendida(Notificacion noti) async {
-    final sql = Supabase.instance.client;
-    await sql
-        .from('notificaciones')
-        .update({'atendida': true})
-        .eq('id', noti.id)
-        .select();
-    if (!mounted) return;
-    setState(() {
-      _lstNotis = _getNotificaciones();
-    });
-  }
-
-  Future<void> _eliminarTodas() async {
-    final sql = Supabase.instance.client;
-    await sql.from('notificaciones').delete().eq('tipo', 'llamada').select();
-    if (!mounted) return;
-    setState(() {
-      _lstNotis = _getNotificaciones();
-    });
+  @override
+  void dispose() {
+    ctr.removeListener(_listener);
+    ctr.dispose();
+    super.dispose();
   }
 
   @override
@@ -109,7 +63,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                       ),
                 );
                 if (eliminar == true) {
-                  await _eliminarTodas();
+                  await ctr.eliminarTodas();
                 }
               },
               icon: const Icon(Icons.delete),
@@ -123,7 +77,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         ),
         Expanded(
           child: FutureBuilder<List<Notificacion>>(
-            future: _lstNotis,
+            future: ctr.lstNotis,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -153,7 +107,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                         onPressed:
                             noti.atendida
                                 ? null
-                                : () async => await _marcarAtendida(noti),
+                                : () async => await ctr.marcarAtendida(noti),
                         style: TextButton.styleFrom(
                           backgroundColor:
                               noti.atendida ? Colors.grey.shade300 : Colors.blue.shade200,

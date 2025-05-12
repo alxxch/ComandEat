@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../controllers/profile_controller.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -8,22 +10,24 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _ctrNombre = TextEditingController(text: 'Mesón Paco');
-  final _ctrDireccion = TextEditingController(text: 'Calle Mayor, 123');
-  final _ctrTelefono = TextEditingController(text: '+34 600 123 456');
+  late final ProfileController ctr;
+  late final VoidCallback _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    ctr = ProfileController();
+    _listener = () {
+      if (mounted) setState(() {});
+    };
+    ctr.addListener(_listener);
+  }
 
   @override
   void dispose() {
-    _ctrNombre.dispose();
-    _ctrDireccion.dispose();
-    _ctrTelefono.dispose();
+    ctr.removeListener(_listener);
+    ctr.dispose();
     super.dispose();
-  }
-
-  void _savePerfil() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Perfil guardado - No implementado')));
   }
 
   @override
@@ -52,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    controller: _ctrNombre,
+                    controller: ctr.nombre,
                     decoration: const InputDecoration(
                       labelText: 'Nombre',
                       border: OutlineInputBorder(),
@@ -60,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    controller: _ctrDireccion,
+                    controller: ctr.direccion,
                     decoration: const InputDecoration(
                       labelText: 'Dirección',
                       border: OutlineInputBorder(),
@@ -68,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    controller: _ctrTelefono,
+                    controller: ctr.telefono,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       labelText: 'Teléfono',
@@ -79,8 +83,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _savePerfil,
-                      child: const Text('Guardar cambios'),
+                      onPressed: ctr.isSaving
+                          ? null
+                          : () => ctr.savePerfil(context),
+                      child: ctr.isSaving
+                          ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                          : const Text('Guardar cambios'),
                     ),
                   ),
                 ],

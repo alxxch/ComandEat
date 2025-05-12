@@ -2,31 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class Reserva {
-  final int id;
-  final int mesaId;
-  final String nombreCliente;
-  final DateTime fechaHora;
-  final String estado;
-
-  Reserva({
-    required this.id,
-    required this.mesaId,
-    required this.nombreCliente,
-    required this.fechaHora,
-    required this.estado,
-  });
-
-  factory Reserva.fromMap(Map<String, dynamic> m) {
-    return Reserva(
-      id: m['id'] as int,
-      mesaId: m['mesa_id'] as int,
-      nombreCliente: m['nombre_cliente'] as String,
-      fechaHora: DateTime.parse(m['fecha_hora'] as String),
-      estado: m['estado'] as String,
-    );
-  }
-}
+import '../../../../core/models/reserva.dart';
+import '../controllers/reservas.controller.dart';
 
 class ReservasScreen extends StatefulWidget {
   const ReservasScreen({Key? key}) : super(key: key);
@@ -36,43 +13,30 @@ class ReservasScreen extends StatefulWidget {
 }
 
 class _ReservasScreenState extends State<ReservasScreen> {
-  late Future<List<Reserva>> _lstReservas;
+  late final ReservasController ctr;
+  late final VoidCallback _listener;
 
   @override
   void initState() {
     super.initState();
-    _lstReservas = _getReservas();
+    ctr = ReservasController();
+    _listener = () {
+      if (mounted) setState(() {});
+    };
+    ctr.addListener(_listener);
   }
 
-  Future<List<Reserva>> _getReservas() async {
-    final sql = Supabase.instance.client;
-    final reservas = await sql
-        .from('reservas')
-        .select('id, mesa_id, nombre_cliente, fecha_hora, estado')
-        .order('fecha_hora', ascending: false);
-    final reservasDevolver = reservas as List<dynamic>;
-    return reservasDevolver
-        .map((e) => Reserva.fromMap(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<void> _cancelarReserva(Reserva reserva) async {
-    final sql = Supabase.instance.client;
-    await sql.from('reservas').delete().eq('id', reserva.id).select();
-    await sql
-        .from('mesas')
-        .update({'estado': 'LIBRE', 'ocupada_desde': null})
-        .eq('id', reserva.mesaId)
-        .select();
-    setState(() {
-      _lstReservas = _getReservas();
-    });
+  @override
+  void dispose() {
+    ctr.removeListener(_listener);
+    ctr.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Reserva>>(
-      future: _lstReservas,
+      future: ctr.lstReservas,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -110,7 +74,7 @@ class _ReservasScreenState extends State<ReservasScreen> {
                       isCancelada
                           ? null
                           : () async {
-                            await _cancelarReserva(reserva);
+                            await ctr.cancelarReserva(reserva);
                           },
                   style: TextButton.styleFrom(
                     backgroundColor:
