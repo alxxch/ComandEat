@@ -45,13 +45,15 @@ _(Trabajo Fin de Grado – DAM)_
 ```plaintext
 comandeat/
 ├── lib/
+│   ├── admin/            # Entry point App Administrador   
+│   ├── client/           # Entry point App Cliente
 │   ├── core/             # Modelos, servicios y utilidades comunes
 │   ├── features/         # Módulos funcionales (menu, carrito, pedido, llamada)
-│   ├── routes/           # Configuración de rutas (GoRouter)
-│   ├── client/           # Entry point App Cliente
-│   └── admin/            # Entry point App Administrador               
+│   │   ├── admin/        # Controladores y vistas de administrador
+│   │   └── client/       # Controladores y vistas de cliente
+│   └── routes/           # Configuración de rutas (GoRouter)            
 ├── pubspec.yaml
-README.md
+└── README.md
 ```
 ---
 ## ⚙️ Configuración del entorno
