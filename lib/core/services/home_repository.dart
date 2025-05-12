@@ -3,11 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/plato.dart';
 
-final menuRepoProvider = Provider<MenuRepository>((ref) {
-  return MenuRepository();
+final menuRepoProvider = Provider<HomeRepository>((ref) {
+  return HomeRepository();
 });
 
-class MenuRepository {
+class HomeRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
   Future<List<Plato>> getPlatos() async {

@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../features/client/menu/controllers/menu_controller.dart';
+import '../../features/client/home/controllers/home_controller.dart';
 import '../../features/client/pedido/controllers/pedido_controller.dart';
 import '../models/estado_pedido.dart';
 import '../models/plato.dart';
-import 'menu_repository.dart';
+import 'home_repository.dart';
 import 'pedido_repository.dart';
 import 'notification_repository.dart';
 
@@ -20,12 +20,12 @@ StateNotifierProvider.family<PedidoController, AsyncValue<EstadoPedido>, int>(
       (ref, pedidoId) => PedidoController(pedidoId),
 );
 
-final menuRepoProvider = Provider((_) => MenuRepository());
+final menuRepoProvider = Provider((_) => HomeRepository());
 
 final menuControllerProvider =
-    StateNotifierProvider<MenuController, AsyncValue<List<Plato>>>((ref) {
+    StateNotifierProvider<HomeController, AsyncValue<List<Plato>>>((ref) {
       final repo = ref.read(menuRepoProvider);
-      return MenuController(repo);
+      return HomeController(repo);
     });
 
 final notificationRepoProvider = Provider((_) => NotificationRepository());
